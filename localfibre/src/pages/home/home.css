@@ -1,0 +1,22 @@
+.home {
+    background-color: black;
+    padding: 5em;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 3em;
+    align-items: center;
+}
+
+
+.logo{
+    height: 30em;
+    max-height: 300px;
+    max-width: 300px;
+    border-radius: 20px;
+  }
+
+  .instaLogo{
+    height: 5em;
+}
