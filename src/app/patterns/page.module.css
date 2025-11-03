@@ -1,0 +1,57 @@
+.patternsPage {
+  min-height: 100vh;
+}
+
+.hero {
+  background-color: var(--color-background-soft);
+  padding: var(--spacing-xl) 0;
+  text-align: center;
+}
+
+.hero h1 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.tagline {
+  font-size: 1.2rem;
+  color: var(--color-body);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.patternsSection {
+  padding: var(--spacing-xl) 0;
+}
+
+.patternsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.kohaSection {
+  padding: var(--spacing-lg) 0;
+  background-color: var(--color-background-soft);
+  margin-top: var(--spacing-xl);
+}
+
+.kohaText {
+  text-align: center;
+  font-size: 1.1rem;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+  .patternsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .hero {
+    padding: var(--spacing-lg) 0;
+  }
+}
+

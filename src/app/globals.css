@@ -1,25 +1,56 @@
+/* Local Fibre Brand Styles */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors */
+  --color-heading: #7f340b;
+  --color-body: #411f0a;
+  --color-accent-cream: #f5f0e8;
+  --color-accent-green: #6b8e5a;
+  --color-accent-moss: #8b9568;
+  --color-accent-clay: #c4a484;
+  --color-background: #ffffff;
+  --color-background-soft: #faf9f7;
+  
+  /* Typography */
+  --font-heading: 'Cream Wish', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 3rem;
+  --spacing-xl: 4rem;
+  
+  /* Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@font-face {
+  font-family: 'Cream Wish';
+  src: url('/fonts/CreamWish-Regular.woff2') format('woff2'),
+       url('/fonts/CreamWish-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-body);
+  background: var(--color-background);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -31,12 +62,100 @@ body {
 }
 
 a {
-  color: inherit;
+  color: var(--color-heading);
   text-decoration: none;
+  transition: opacity 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+a:hover {
+  opacity: 0.8;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-heading);
+  font-weight: normal;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-sm);
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+h4 {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+}
+
+p {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.7;
+}
+
+/* Accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
+/* Button styles */
+button, .btn {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: inline-block;
+}
+
+.btn-primary {
+  background-color: var(--color-heading);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-body);
+  opacity: 1;
+}
+
+.btn-secondary {
+  background-color: var(--color-accent-cream);
+  color: var(--color-body);
+  border: 1px solid var(--color-accent-clay);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-accent-clay);
+  color: white;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-sm);
   }
+}
+
+/* Decorative elements */
+.stitched-line {
+  border-top: 2px dashed var(--color-accent-clay);
+  margin: var(--spacing-md) 0;
+  opacity: 0.3;
 }

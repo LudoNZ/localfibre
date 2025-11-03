@@ -1,141 +1,204 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
-
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
-  display: flex;
+.home {
   min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
 }
 
-.main {
+/* Hero Section */
+.hero {
+  background: linear-gradient(135deg, var(--color-background-soft) 0%, var(--color-background) 100%);
+  padding: var(--spacing-xl) 0;
+  text-align: center;
+}
+
+.heroContent {
   display: flex;
-  min-height: 100vh;
-  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
   max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
+  margin: 0 auto;
 }
 
-.intro {
+.heroImage {
+  margin-bottom: var(--spacing-md);
+}
+
+.heroTagline {
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  line-height: 1.7;
+  color: var(--color-body);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.heroCTAs {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
-}
-
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
-}
-
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
-}
-
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
+  margin-top: var(--spacing-sm);
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
+/* Events Section */
+.eventsSection {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background);
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.eventsSection h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
+.eventsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
+.sectionCTAs {
+  text-align: center;
+  margin-top: var(--spacing-lg);
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
+/* About Section */
+.aboutSection {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background-soft);
+}
+
+.aboutSection h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.aboutContent {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.aboutContent p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Workshops Section */
+.workshopsSection {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background);
+}
+
+.workshopsSection h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.workshopsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.workshopCard {
+  background-color: var(--color-background-soft);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+  border: 1px solid var(--color-accent-cream);
+}
+
+.workshopCard h3 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-heading);
+}
+
+.workshopCard p {
+  line-height: 1.7;
+}
+
+/* Values Section */
+.valuesSection {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background-soft);
+}
+
+.valuesSection h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.valueCard {
+  background-color: var(--color-background);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+  border: 1px solid var(--color-accent-cream);
+  text-align: center;
+}
+
+.valueCard h3 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-heading);
+}
+
+.valueCard p {
+  line-height: 1.7;
+}
+
+/* Newsletter Section */
+.newsletterSection {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background);
+  text-align: center;
+}
+
+.newsletterSection h2 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.newsletterDescription {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-body);
+}
+
+/* Final CTAs */
+.finalCTAs {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background-soft);
+}
+
+.ctaButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-lg) 0;
   }
 
-  .page {
-    --background: #000;
-    --foreground: #000;
+  .heroCTAs,
+  .ctaButtons {
+    flex-direction: column;
+    width: 100%;
+  }
 
-    --text-primary: #ededed;
-    --text-secondary: #999;
+  .heroCTAs a,
+  .ctaButtons a {
+    width: 100%;
+  }
 
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+  .eventsGrid,
+  .workshopsGrid,
+  .valuesGrid {
+    grid-template-columns: 1fr;
   }
 }
