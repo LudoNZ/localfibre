@@ -33,8 +33,8 @@
 
 @font-face {
   font-family: "Cream Wish";
-  src: url("/fonts/CreamWish-Regular.woff2") format("woff2"),
-    url("/fonts/CreamWish-Regular.woff") format("woff");
+  src: url("/fonts/cream_wish/Cream Wish/Cream Wish.otf") format("opentype"),
+    url("/fonts/cream_wish/Cream Wish/Cream Wish.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;

@@ -18,12 +18,12 @@ export default function Header() {
         <nav className={styles.nav}>
           <Link href="/" className={styles.logo}>
             <Image
-              src="/images/logo.svg"
+              src="/images/LFLogo-Horizontal.png"
               alt="Local Fibre"
-              width={150}
+              width={200}
               height={60}
               priority
-              style={{ height: "auto", width: "auto" }}
+              style={{ height: "auto", width: "auto", maxWidth: "200px" }}
             />
           </Link>
 

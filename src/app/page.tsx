@@ -16,7 +16,7 @@ export default function Home() {
           <div className={styles.heroContent}>
             <div className={styles.heroImage}>
               <Image
-                src="/images/banner-logo.svg"
+                src="/images/LFLogo-Horizontal.png"
                 alt="Local Fibre"
                 width={600}
                 height={300}
