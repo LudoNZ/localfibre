@@ -36,8 +36,8 @@
 }
 
 .navList a {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
   transition: background-color 0.2s ease;
 }
 
@@ -90,7 +90,7 @@
   .mobileNavList a {
     display: block;
     padding: var(--spacing-sm);
-    border-radius: 4px;
+    border-radius: 8px;
   }
 
   .mobileNavList a:hover {

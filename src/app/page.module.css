@@ -103,8 +103,8 @@
 
 .workshopCard {
   background-color: var(--color-background-soft);
-  padding: var(--spacing-md);
-  border-radius: 8px;
+  padding: var(--spacing-lg);
+  border-radius: 16px;
   border: 1px solid var(--color-accent-cream);
 }
 
@@ -136,8 +136,8 @@
 
 .valueCard {
   background-color: var(--color-background);
-  padding: var(--spacing-md);
-  border-radius: 8px;
+  padding: var(--spacing-lg);
+  border-radius: 16px;
   border: 1px solid var(--color-accent-cream);
   text-align: center;
 }
