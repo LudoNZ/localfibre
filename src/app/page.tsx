@@ -1,12 +1,12 @@
-import Link from "next/link";
-import Image from "next/image";
-import styles from "./page.module.css";
-import NewsletterForm from "@/components/forms/NewsletterForm";
-import { getUpcomingEvents } from "@/data/events";
-import EventCard from "@/components/ui/EventCard";
+import Link from "next/link"
+import Image from "next/image"
+import styles from "./page.module.css"
+import NewsletterForm from "@/components/forms/NewsletterForm"
+import { getUpcomingEvents } from "@/data/events"
+import EventCard from "@/components/ui/EventCard"
 
 export default function Home() {
-  const upcomingEvents = getUpcomingEvents();
+  const upcomingEvents = getUpcomingEvents()
 
   return (
     <div className={styles.home}>
@@ -25,7 +25,8 @@ export default function Home() {
               />
             </div>
             <p className={styles.heroTagline}>
-              Connecting community through sewing, creativity, and zero-waste practice in Aotearoa.
+              Connecting community through sewing, creativity and zero-waste
+              practice in Aotearoa.
             </p>
             <div className={styles.heroCTAs}>
               <Link href="/events" className="btn-primary">
@@ -64,13 +65,14 @@ export default function Home() {
           <h2>About Local Fibre</h2>
           <div className={styles.aboutContent}>
             <p>
-              Local Fibre is a community-driven creative initiative that brings together people
-              who love to make, mend, and connect.
+              Local Fibre is a community-driven creative initiative that brings
+              together people who love to make, mend, and connect.
             </p>
             <p>
-              Valuing sustainability, community, and shared learning, we offer welcoming spaces
-              for fibre crafters of all kinds—knitters, stitchers, upcyclers, weavers, and curious
-              beginners—to gather, share skills, and spark inspiration.
+              Valuing sustainability, community, and shared learning, we offer
+              welcoming spaces for fibre crafters of all kinds—knitters,
+              stitchers, upcyclers, weavers, and curious beginners—to gather,
+              share skills, and spark inspiration.
             </p>
           </div>
         </div>
@@ -86,22 +88,24 @@ export default function Home() {
             <div className={styles.workshopCard}>
               <h3>Social Sewing Sessions</h3>
               <p>
-                Regular meetups where makers come together to work on their own projects in a
-                supportive, social environment. All skill levels welcome.
+                Regular meetups where makers come together to work on their own
+                projects in a supportive, social environment. All skill levels
+                welcome.
               </p>
             </div>
             <div className={styles.workshopCard}>
               <h3>Skill-Building Workshops</h3>
               <p>
-                Learn new techniques from experienced makers. From basic mending to advanced
-                techniques, we cover a range of skills for sustainable textile practices.
+                Learn new techniques from experienced makers. From basic mending
+                to advanced techniques, we cover a range of skills for
+                sustainable textile practices.
               </p>
             </div>
             <div className={styles.workshopCard}>
               <h3>Creative Mending</h3>
               <p>
-                Transform worn clothes into beautiful, unique pieces through visible mending and
-                creative patching techniques.
+                Transform worn clothes into beautiful, unique pieces through
+                visible mending and creative patching techniques.
               </p>
             </div>
           </div>
@@ -117,19 +121,23 @@ export default function Home() {
           <div className={styles.valuesGrid}>
             <div className={styles.valueCard}>
               <h3>Whakawhanaungatanga</h3>
-              <p>Building meaningful connections and relationships within our community.</p>
+              <p>
+                Building meaningful connections and relationships within our
+                community.
+              </p>
             </div>
             <div className={styles.valueCard}>
               <h3>Sustainability</h3>
               <p>
-                Promoting zero-waste practices, reuse, and mindful consumption of textile resources.
+                Promoting zero-waste practices, reuse, and mindful consumption
+                of textile resources.
               </p>
             </div>
             <div className={styles.valueCard}>
               <h3>Shared Learning</h3>
               <p>
-                Creating spaces where everyone can learn, teach, and grow together regardless of
-                skill level.
+                Creating spaces where everyone can learn, teach, and grow
+                together regardless of skill level.
               </p>
             </div>
           </div>
@@ -143,7 +151,8 @@ export default function Home() {
         <div className="container">
           <h2>Stay Connected</h2>
           <p className={styles.newsletterDescription}>
-            Subscribe to our newsletter for updates on events, workshops, and community news.
+            Subscribe to our newsletter for updates on events, workshops, and
+            community news.
           </p>
           <NewsletterForm />
         </div>
@@ -166,5 +175,5 @@ export default function Home() {
         </div>
       </section>
     </div>
-  );
+  )
 }
