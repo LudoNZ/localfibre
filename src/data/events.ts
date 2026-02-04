@@ -13,8 +13,8 @@ export const events: Event[] = [
   {
     id: "1",
     title: "Fabric Swap Titirangi",
-    date: "March 28, 2025",
-    time: "12:00 AM - 3:00 PM",
+    date: "March 28, 2026",
+    time: "12:00 PM - 3:00 PM",
     location: "Titirangi Community House, Titirang, Auckland",
     description:
       "Donate what you can. Take what you need.\n\n Bring along fabric, yarn, haberdashery, patterns and sewing treasures you no longer need, and browse what others have shared in return",
@@ -49,3 +49,42 @@ export function getUpcomingEvents(): Event[] {
   return events.filter((event) => event.isUpcoming).slice(0, 3);
 }
 
+/**
+ * Finds the next upcoming event with a parseable date
+ * Returns the event ID if found, null otherwise
+ */
+export function getNextEventId(): string | null {
+  const upcoming = events.filter((event) => event.isUpcoming);
+  const now = new Date();
+
+  // Try to parse dates and find the closest future event
+  const eventsWithDates = upcoming
+    .map((event) => {
+      // Skip "TBC" dates
+      if (event.date.includes("TBC")) return null;
+
+      const eventDate = new Date(event.date);
+      if (isNaN(eventDate.getTime())) return null;
+
+      return {
+        event,
+        date: eventDate,
+      };
+    })
+    .filter((item): item is { event: Event; date: Date } => item !== null)
+    .filter((item) => item.date >= now)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  return eventsWithDates.length > 0 ? eventsWithDates[0].event.id : null;
+}
+
+/**
+ * Parses an event date string and returns a Date object
+ * Returns null if the date cannot be parsed
+ */
+export function parseEventDate(dateString: string): Date | null {
+  if (dateString.includes("TBC")) return null;
+
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? null : date;
+}

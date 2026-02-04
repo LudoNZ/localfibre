@@ -2,11 +2,12 @@ import Link from "next/link"
 import Image from "next/image"
 import styles from "./page.module.css"
 import NewsletterForm from "@/components/forms/NewsletterForm"
-import { getUpcomingEvents } from "@/data/events"
+import { getUpcomingEvents, getNextEventId } from "@/data/events"
 import EventCard from "@/components/ui/EventCard"
 
 export default function Home() {
   const upcomingEvents = getUpcomingEvents()
+  const nextEventId = getNextEventId()
 
   return (
     <div className={styles.home}>
@@ -46,7 +47,7 @@ export default function Home() {
           <h2>Upcoming Events</h2>
           <div className={styles.eventsGrid}>
             {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} isNext={event.id === nextEventId} />
             ))}
           </div>
           <div className={styles.sectionCTAs}>

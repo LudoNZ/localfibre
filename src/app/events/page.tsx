@@ -1,5 +1,5 @@
 import styles from "./page.module.css";
-import { events } from "@/data/events";
+import { events, getNextEventId } from "@/data/events";
 import EventCard from "@/components/ui/EventCard";
 
 export const metadata = {
@@ -10,6 +10,7 @@ export const metadata = {
 export default function EventsPage() {
   const upcomingEvents = events.filter((e) => e.isUpcoming);
   const pastEvents = events.filter((e) => !e.isUpcoming);
+  const nextEventId = getNextEventId();
 
   return (
     <div className={styles.eventsPage}>
@@ -29,7 +30,7 @@ export default function EventsPage() {
             <>
               <div className={styles.eventsGrid}>
                 {upcomingEvents.map((event) => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} isNext={event.id === nextEventId} />
                 ))}
               </div>
             </>

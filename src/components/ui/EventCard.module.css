@@ -7,11 +7,35 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nextEvent {
+  border: 2px solid var(--color-heading);
+  box-shadow: 0 4px 16px rgba(127, 52, 11, 0.15);
+}
+
+.stamp {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background: linear-gradient(135deg, var(--color-heading) 0%, var(--color-body) 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(127, 52, 11, 0.3);
+  z-index: 10;
+  transform: rotate(3deg);
 }
 
 .cardContent {
