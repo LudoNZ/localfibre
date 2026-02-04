@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styles from "./EventCard.module.css";
-import { Event, parseEventDate } from "@/data/events";
+import { Event, parseEventDateTime } from "@/data/events";
 import CountdownTimer from "./CountdownTimer";
 
 interface EventCardProps {
@@ -9,7 +9,7 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event, isNext = false }: EventCardProps) {
-  const eventDate = parseEventDate(event.date);
+  const eventDateTime = parseEventDateTime(event.date, event.time);
 
   return (
     <article className={`${styles.card} ${isNext ? styles.nextEvent : ""}`}>
@@ -21,8 +21,8 @@ export default function EventCard({ event, isNext = false }: EventCardProps) {
           <p className={styles.time}>{event.time}</p>
           <p className={styles.location}>{event.location}</p>
         </div>
-        {isNext && eventDate && (
-          <CountdownTimer targetDate={eventDate} />
+        {isNext && eventDateTime && (
+          <CountdownTimer targetDate={eventDateTime} />
         )}
         <p className={styles.description}>{event.description}</p>
         {event.registerLink && (
