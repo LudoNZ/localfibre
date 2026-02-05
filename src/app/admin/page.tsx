@@ -24,6 +24,11 @@ interface Event {
   isUpcoming: boolean;
 }
 
+interface Location {
+  id: string;
+  name: string;
+}
+
 type Tab = "users" | "events";
 
 export default function AdminPage() {
@@ -32,8 +37,13 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
+
+  // New location state
+  const [showNewLocation, setShowNewLocation] = useState(false);
+  const [newLocationName, setNewLocationName] = useState("");
 
   // User form state
   const [showUserForm, setShowUserForm] = useState(false);
@@ -50,12 +60,64 @@ export default function AdminPage() {
   const [eventForm, setEventForm] = useState({
     title: "",
     date: "",
-    time: "",
+    dateTbc: "",
+    startTime: "",
+    endTime: "",
+    timeTbc: "",
     location: "",
     description: "",
     registerLink: "",
     isUpcoming: true,
   });
+
+  // Helper functions to convert between display format and input format
+  const formatDateForDisplay = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  };
+
+  const formatTimeForDisplay = (startTime: string, endTime: string): string => {
+    if (!startTime) return "";
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(":");
+      const h = parseInt(hours);
+      const period = h >= 12 ? "PM" : "AM";
+      const hour12 = h % 12 || 12;
+      return `${hour12}:${minutes} ${period}`;
+    };
+    const start = formatTime(startTime);
+    const end = endTime ? formatTime(endTime) : "";
+    return end ? `${start} - ${end}` : start;
+  };
+
+  const parseDisplayDate = (displayDate: string): string => {
+    if (!displayDate) return "";
+    const date = new Date(displayDate);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split("T")[0];
+  };
+
+  const parseDisplayTime = (displayTime: string): { startTime: string; endTime: string } => {
+    if (!displayTime) return { startTime: "", endTime: "" };
+    const timeRegex = /(\d{1,2}):(\d{2})\s*(AM|PM)/gi;
+    const matches = [...displayTime.matchAll(timeRegex)];
+
+    const convertTo24Hour = (match: RegExpMatchArray): string => {
+      let hours = parseInt(match[1]);
+      const minutes = match[2];
+      const period = match[3].toUpperCase();
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
+      return `${hours.toString().padStart(2, "0")}:${minutes}`;
+    };
+
+    return {
+      startTime: matches[0] ? convertTo24Hour(matches[0]) : "",
+      endTime: matches[1] ? convertTo24Hour(matches[1]) : "",
+    };
+  };
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -69,6 +131,38 @@ export default function AdminPage() {
     }
   }, [isAdmin, activeTab]);
 
+  const fetchLocations = async () => {
+    try {
+      const res = await fetch("/api/locations");
+      const data = await res.json();
+      if (!data.error) {
+        setLocations(data.locations || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch locations:", err);
+    }
+  };
+
+  const handleAddLocation = async () => {
+    if (!newLocationName.trim()) return;
+    setError("");
+    try {
+      const res = await fetch("/api/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newLocationName }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setLocations([...locations, data.location].sort((a, b) => a.name.localeCompare(b.name)));
+      setEventForm({ ...eventForm, location: data.location.name });
+      setNewLocationName("");
+      setShowNewLocation(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add location");
+    }
+  };
+
   const fetchData = async () => {
     setLoadingData(true);
     setError("");
@@ -79,10 +173,15 @@ export default function AdminPage() {
         if (data.error) throw new Error(data.error);
         setUsers(data.users || []);
       } else {
-        const res = await fetch("/api/events");
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        setEvents(data.events || []);
+        const [eventsRes, locationsRes] = await Promise.all([
+          fetch("/api/events"),
+          fetch("/api/locations"),
+        ]);
+        const eventsData = await eventsRes.json();
+        const locationsData = await locationsRes.json();
+        if (eventsData.error) throw new Error(eventsData.error);
+        setEvents(eventsData.events || []);
+        setLocations(locationsData.locations || []);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch data");
@@ -137,10 +236,31 @@ export default function AdminPage() {
       const url = editingEvent ? `/api/events/${editingEvent.id}` : "/api/events";
       const method = editingEvent ? "PUT" : "POST";
 
+      // Format date and time for storage
+      // Use TBC message if no date is selected
+      const displayDate = eventForm.date
+        ? formatDateForDisplay(eventForm.date)
+        : eventForm.dateTbc || "TBC";
+
+      // Use custom time message if no start time is provided
+      const displayTime = eventForm.startTime
+        ? formatTimeForDisplay(eventForm.startTime, eventForm.endTime)
+        : eventForm.timeTbc || "";
+
+      const eventData = {
+        title: eventForm.title,
+        date: displayDate,
+        time: displayTime,
+        location: eventForm.location,
+        description: eventForm.description,
+        registerLink: eventForm.registerLink,
+        isUpcoming: eventForm.isUpcoming,
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(eventForm),
+        body: JSON.stringify(eventData),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -150,7 +270,10 @@ export default function AdminPage() {
       setEventForm({
         title: "",
         date: "",
-        time: "",
+        dateTbc: "",
+        startTime: "",
+        endTime: "",
+        timeTbc: "",
         location: "",
         description: "",
         registerLink: "",
@@ -164,10 +287,17 @@ export default function AdminPage() {
 
   const handleEditEvent = (event: Event) => {
     setEditingEvent(event);
+    const { startTime, endTime } = parseDisplayTime(event.time);
+    const parsedDate = parseDisplayDate(event.date);
+    const isDateTbc = !parsedDate && event.date;
+    const isTimeTbc = !startTime && event.time;
     setEventForm({
       title: event.title,
-      date: event.date,
-      time: event.time,
+      date: parsedDate,
+      dateTbc: isDateTbc ? event.date : "",
+      startTime,
+      endTime,
+      timeTbc: isTimeTbc ? event.time : "",
       location: event.location,
       description: event.description,
       registerLink: event.registerLink || "",
@@ -327,7 +457,10 @@ export default function AdminPage() {
                 setEventForm({
                   title: "",
                   date: "",
-                  time: "",
+                  dateTbc: "",
+                  startTime: "",
+                  endTime: "",
+                  timeTbc: "",
                   location: "",
                   description: "",
                   registerLink: "",
@@ -352,34 +485,106 @@ export default function AdminPage() {
               </div>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label>Date</label>
+                  <label>Date (optional)</label>
                   <input
-                    type="text"
+                    type="date"
                     value={eventForm.date}
-                    onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
-                    placeholder="e.g., March 28, 2026"
-                    required
+                    onChange={(e) => setEventForm({ ...eventForm, date: e.target.value, dateTbc: "" })}
                   />
                 </div>
+                {!eventForm.date && (
+                  <div className={styles.formGroup}>
+                    <label>Date Custom Message</label>
+                    <input
+                      type="text"
+                      value={eventForm.dateTbc}
+                      onChange={(e) => setEventForm({ ...eventForm, dateTbc: e.target.value })}
+                      placeholder="e.g., TBC 2026"
+                    />
+                  </div>
+                )}
+                <br/>
                 <div className={styles.formGroup}>
-                  <label>Time</label>
+                  <label>Start Time (optional)</label>
                   <input
-                    type="text"
-                    value={eventForm.time}
-                    onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
-                    placeholder="e.g., 12:00 PM - 3:00 PM"
-                    required
+                    type="time"
+                    value={eventForm.startTime}
+                    onChange={(e) => setEventForm({ ...eventForm, startTime: e.target.value, timeTbc: "" })}
                   />
                 </div>
+                {eventForm.startTime ? (
+                  <div className={styles.formGroup}>
+                    <label>End Time</label>
+                    <input
+                      type="time"
+                      value={eventForm.endTime}
+                      onChange={(e) => setEventForm({ ...eventForm, endTime: e.target.value })}
+                    />
+                  </div>
+                ) : (
+                  <div className={styles.formGroup}>
+                    <label>Time Custom Message</label>
+                    <input
+                      type="text"
+                      value={eventForm.timeTbc}
+                      onChange={(e) => setEventForm({ ...eventForm, timeTbc: e.target.value })}
+                      placeholder="e.g., Morning session"
+                    />
+                  </div>
+                )}
               </div>
               <div className={styles.formGroup}>
                 <label>Location</label>
-                <input
-                  type="text"
-                  value={eventForm.location}
-                  onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
-                  required
-                />
+                {showNewLocation ? (
+                  <div className={styles.newLocationInput}>
+                    <input
+                      type="text"
+                      value={newLocationName}
+                      onChange={(e) => setNewLocationName(e.target.value)}
+                      placeholder="Enter new location"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={handleAddLocation}
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => {
+                        setShowNewLocation(false);
+                        setNewLocationName("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.locationSelect}>
+                    <select
+                      value={eventForm.location}
+                      onChange={(e) => {
+                        if (e.target.value === "__new__") {
+                          setShowNewLocation(true);
+                        } else {
+                          setEventForm({ ...eventForm, location: e.target.value });
+                        }
+                      }}
+                      required
+                    >
+                      <option value="">Select a location</option>
+                      {locations.map((loc) => (
+                        <option key={loc.id} value={loc.name}>
+                          {loc.name}
+                        </option>
+                      ))}
+                      <option value="__new__">+ Add new location</option>
+                    </select>
+                  </div>
+                )}
               </div>
               <div className={styles.formGroup}>
                 <label>Description</label>

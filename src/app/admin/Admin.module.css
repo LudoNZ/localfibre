@@ -121,8 +121,26 @@
 
 .formRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--spacing-md);
+}
+
+.locationSelect select {
+  width: 100%;
+}
+
+.newLocationInput {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.newLocationInput input {
+  flex: 1;
+}
+
+.newLocationInput button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
 }
 
 .checkbox {

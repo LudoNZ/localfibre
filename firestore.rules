@@ -30,5 +30,10 @@ service cloud.firestore {
     match /events/{eventId} {
       allow read: if true;
     }
+
+    // Locations are publicly readable
+    match /locations/{locationId} {
+      allow read: if true;
+    }
   }
 }
