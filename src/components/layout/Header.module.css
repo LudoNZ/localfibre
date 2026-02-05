@@ -81,6 +81,27 @@
   background-color: var(--color-accent-cream);
 }
 
+.authButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adminLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  color: var(--color-accent-clay);
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.adminLink:hover {
+  color: var(--color-heading);
+  background-color: var(--color-accent-cream);
+}
+
 @media (max-width: 768px) {
   .navList {
     display: none;

@@ -1,5 +1,5 @@
 import styles from "./page.module.css";
-import { events, getNextEventId } from "@/data/events";
+import { getEvents, getNextEventId } from "@/lib/events";
 import EventCard from "@/components/ui/EventCard";
 
 export const metadata = {
@@ -7,10 +7,13 @@ export const metadata = {
   description: "Join us for Fibre & Friends and other community sewing events in Aotearoa.",
 };
 
-export default function EventsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function EventsPage() {
+  const events = await getEvents();
   const upcomingEvents = events.filter((e) => e.isUpcoming);
   const pastEvents = events.filter((e) => !e.isUpcoming);
-  const nextEventId = getNextEventId();
+  const nextEventId = getNextEventId(events);
 
   return (
     <div className={styles.eventsPage}>
@@ -57,4 +60,3 @@ export default function EventsPage() {
     </div>
   );
 }
-

@@ -2,12 +2,14 @@ import Link from "next/link"
 import Image from "next/image"
 import styles from "./page.module.css"
 import NewsletterForm from "@/components/forms/NewsletterForm"
-import { getUpcomingEvents, getNextEventId } from "@/data/events"
+import { getUpcomingEvents, getNextEventId } from "@/lib/events"
 import EventCard from "@/components/ui/EventCard"
 
-export default function Home() {
-  const upcomingEvents = getUpcomingEvents()
-  const nextEventId = getNextEventId()
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const upcomingEvents = await getUpcomingEvents()
+  const nextEventId = getNextEventId(upcomingEvents)
 
   return (
     <div className={styles.home}>
