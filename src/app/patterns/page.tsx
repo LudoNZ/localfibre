@@ -1,5 +1,5 @@
 import styles from "./page.module.css";
-import { patterns } from "@/data/patterns";
+import { getPatterns } from "@/lib/patterns";
 import PatternCard from "@/components/ui/PatternCard";
 
 export const metadata = {
@@ -7,7 +7,11 @@ export const metadata = {
   description: "Resource-sharing for a creative, low-waste Aotearoa. Download free sewing patterns.",
 };
 
-export default function PatternsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function PatternsPage() {
+  const patterns = await getPatterns();
+
   return (
     <div className={styles.patternsPage}>
       <section className={styles.hero}>
@@ -21,11 +25,17 @@ export default function PatternsPage() {
 
       <section className={styles.patternsSection}>
         <div className="container">
-          <div className={styles.patternsGrid}>
-            {patterns.map((pattern) => (
-              <PatternCard key={pattern.id} pattern={pattern} />
-            ))}
-          </div>
+          {patterns.length > 0 ? (
+            <div className={styles.patternsGrid}>
+              {patterns.map((pattern) => (
+                <PatternCard key={pattern.id} pattern={pattern} />
+              ))}
+            </div>
+          ) : (
+            <p className={styles.noPatterns}>
+              Patterns coming soon! Check back later.
+            </p>
+          )}
         </div>
       </section>
 
@@ -40,4 +50,3 @@ export default function PatternsPage() {
     </div>
   );
 }
-

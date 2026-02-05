@@ -35,5 +35,10 @@ service cloud.firestore {
     match /locations/{locationId} {
       allow read: if true;
     }
+
+    // Patterns are publicly readable
+    match /patterns/{patternId} {
+      allow read: if true;
+    }
   }
 }

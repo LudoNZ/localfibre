@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import styles from "./Admin.module.css";
 
 interface User {
@@ -29,7 +31,15 @@ interface Location {
   name: string;
 }
 
-type Tab = "users" | "events";
+interface Pattern {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  pdfUrl: string;
+}
+
+type Tab = "users" | "events" | "patterns";
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
@@ -38,12 +48,27 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [patterns, setPatterns] = useState<Pattern[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
 
   // New location state
   const [showNewLocation, setShowNewLocation] = useState(false);
   const [newLocationName, setNewLocationName] = useState("");
+
+  // Pattern form state
+  const [showPatternForm, setShowPatternForm] = useState(false);
+  const [editingPattern, setEditingPattern] = useState<Pattern | null>(null);
+  const [patternForm, setPatternForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+    pdfUrl: "",
+  });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   // User form state
   const [showUserForm, setShowUserForm] = useState(false);
@@ -172,7 +197,7 @@ export default function AdminPage() {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setUsers(data.users || []);
-      } else {
+      } else if (activeTab === "events") {
         const [eventsRes, locationsRes] = await Promise.all([
           fetch("/api/events"),
           fetch("/api/locations"),
@@ -182,6 +207,11 @@ export default function AdminPage() {
         if (eventsData.error) throw new Error(eventsData.error);
         setEvents(eventsData.events || []);
         setLocations(locationsData.locations || []);
+      } else if (activeTab === "patterns") {
+        const res = await fetch("/api/patterns");
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setPatterns(data.patterns || []);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch data");
@@ -319,6 +349,103 @@ export default function AdminPage() {
     }
   };
 
+  // Pattern handlers
+  const handleUploadFile = async (
+    file: File,
+    folder: string
+  ): Promise<string> => {
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const storageRef = ref(storage, `${folder}/${timestamp}-${safeName}`);
+    await uploadBytes(storageRef, file);
+    return getDownloadURL(storageRef);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    setError("");
+    try {
+      const url = await handleUploadFile(file, "patterns/images");
+      setPatternForm({ ...patternForm, image: url });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPdf(true);
+    setError("");
+    try {
+      const url = await handleUploadFile(file, "patterns/pdfs");
+      setPatternForm({ ...patternForm, pdfUrl: url });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload PDF");
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
+  const handleCreateOrUpdatePattern = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      const url = editingPattern
+        ? `/api/patterns/${editingPattern.id}`
+        : "/api/patterns";
+      const method = editingPattern ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patternForm),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setShowPatternForm(false);
+      setEditingPattern(null);
+      setPatternForm({
+        title: "",
+        description: "",
+        image: "",
+        pdfUrl: "",
+      });
+      fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save pattern");
+    }
+  };
+
+  const handleEditPattern = (pattern: Pattern) => {
+    setEditingPattern(pattern);
+    setPatternForm({
+      title: pattern.title,
+      description: pattern.description,
+      image: pattern.image,
+      pdfUrl: pattern.pdfUrl,
+    });
+    setShowPatternForm(true);
+  };
+
+  const handleDeletePattern = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this pattern?")) return;
+    setError("");
+    try {
+      const res = await fetch(`/api/patterns/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete pattern");
+    }
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
   }
@@ -343,6 +470,12 @@ export default function AdminPage() {
           onClick={() => setActiveTab("events")}
         >
           Events
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "patterns" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("patterns")}
+        >
+          Patterns
         </button>
       </div>
 
@@ -648,6 +781,144 @@ export default function AdminPage() {
                     <button
                       className={styles.deleteBtn}
                       onClick={() => handleDeleteEvent(event.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "patterns" && (
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Patterns</h2>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setShowPatternForm(!showPatternForm);
+                setEditingPattern(null);
+                setPatternForm({
+                  title: "",
+                  description: "",
+                  image: "",
+                  pdfUrl: "",
+                });
+              }}
+            >
+              {showPatternForm ? "Cancel" : "Add Pattern"}
+            </button>
+          </div>
+
+          {showPatternForm && (
+            <form onSubmit={handleCreateOrUpdatePattern} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={patternForm.title}
+                  onChange={(e) => setPatternForm({ ...patternForm, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Description</label>
+                <textarea
+                  value={patternForm.description}
+                  onChange={(e) => setPatternForm({ ...patternForm, description: e.target.value })}
+                  rows={4}
+                  required
+                />
+              </div>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label>Preview Image</label>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className={styles.fileInput}
+                  />
+                  {uploadingImage && <p className={styles.uploading}>Uploading...</p>}
+                  {patternForm.image && (
+                    <div className={styles.filePreview}>
+                      <img src={patternForm.image} alt="Preview" className={styles.imagePreview} />
+                    </div>
+                  )}
+                </div>
+                <br/>
+                <div className={styles.formGroup}>
+                  <label>Pattern PDF</label>
+                  <input
+                    ref={pdfInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handlePdfUpload}
+                    className={styles.fileInput}
+                  />
+                  {uploadingPdf && <p className={styles.uploading}>Uploading...</p>}
+                  {patternForm.pdfUrl && (
+                    <div className={styles.filePreview}>
+                      <a href={patternForm.pdfUrl} target="_blank" rel="noopener noreferrer">
+                        View PDF
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={uploadingImage || uploadingPdf}
+              >
+                {editingPattern ? "Update Pattern" : "Create Pattern"}
+              </button>
+            </form>
+          )}
+
+          {loadingData ? (
+            <p>Loading patterns...</p>
+          ) : patterns.length === 0 ? (
+            <p className={styles.empty}>No patterns yet. Add your first pattern above.</p>
+          ) : (
+            <div className={styles.patternsList}>
+              {patterns.map((pattern) => (
+                <div key={pattern.id} className={styles.patternCard}>
+                  {pattern.image && (
+                    <img
+                      src={pattern.image}
+                      alt={pattern.title}
+                      className={styles.patternImage}
+                    />
+                  )}
+                  <div className={styles.patternInfo}>
+                    <h3>{pattern.title}</h3>
+                    <p className={styles.patternDescription}>{pattern.description}</p>
+                    {pattern.pdfUrl && (
+                      <a
+                        href={pattern.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.pdfLink}
+                      >
+                        Download PDF
+                      </a>
+                    )}
+                  </div>
+                  <div className={styles.patternActions}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleEditPattern(pattern)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className={styles.deleteBtn}
+                      onClick={() => handleDeletePattern(pattern.id)}
                     >
                       Delete
                     </button>

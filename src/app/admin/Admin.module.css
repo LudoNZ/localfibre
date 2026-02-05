@@ -288,6 +288,94 @@
   padding: var(--spacing-lg);
 }
 
+/* Pattern styles */
+.patternsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.patternCard {
+  background: var(--color-background-soft);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.patternImage {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--color-accent-cream);
+}
+
+.patternInfo {
+  padding: var(--spacing-md);
+  flex: 1;
+}
+
+.patternInfo h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-heading);
+  font-size: 1.1rem;
+}
+
+.patternDescription {
+  margin: var(--spacing-xs) 0;
+  color: var(--color-body);
+  font-size: 0.9rem;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pdfLink {
+  display: inline-block;
+  margin-top: var(--spacing-xs);
+  color: var(--color-heading);
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.patternActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-md) var(--spacing-md);
+}
+
+.patternActions button {
+  flex: 1;
+}
+
+.fileInput {
+  padding: 0.5rem;
+  border: 1px dashed var(--color-accent-clay);
+  border-radius: 8px;
+  background: var(--color-background);
+  cursor: pointer;
+  width: 100%;
+}
+
+.filePreview {
+  margin-top: var(--spacing-xs);
+}
+
+.imagePreview {
+  max-width: 150px;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.uploading {
+  color: var(--color-accent-green);
+  font-size: 0.9rem;
+  margin: var(--spacing-xs) 0 0;
+}
+
 @media (max-width: 768px) {
   .formRow {
     grid-template-columns: 1fr;
