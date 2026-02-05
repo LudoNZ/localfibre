@@ -64,6 +64,23 @@
   display: none;
 }
 
+.loginButton {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-accent-clay);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.loginButton:hover {
+  color: var(--color-heading);
+  background-color: var(--color-accent-cream);
+}
+
 @media (max-width: 768px) {
   .navList {
     display: none;
@@ -95,6 +112,14 @@
 
   .mobileNavList a:hover {
     background-color: var(--color-accent-cream);
+  }
+
+  .mobileNavList .loginButton {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-sm);
+    font-size: 0.9rem;
   }
 }
 

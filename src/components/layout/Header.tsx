@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 import styles from "./Header.module.css";
+import LoginModal from "../ui/LoginModal";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -45,6 +47,14 @@ export default function Header() {
               <a href="#newsletter" className="btn-secondary">
                 Newsletter
               </a>
+            </li>
+            <li>
+              <button
+                onClick={() => setIsLoginOpen(true)}
+                className={styles.loginButton}
+              >
+                Sign in
+              </button>
             </li>
           </ul>
 
@@ -89,9 +99,21 @@ export default function Header() {
                 Newsletter
               </a>
             </li>
+            <li>
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsLoginOpen(true);
+                }}
+                className={styles.loginButton}
+              >
+                Sign in
+              </button>
+            </li>
           </ul>
         )}
       </div>
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </header>
   );
 }
