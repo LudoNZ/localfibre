@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import styles from "./LoginModal.module.css";
 
 interface LoginModalProps {
@@ -9,6 +10,7 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -42,17 +44,25 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setStatus("loading");
     setErrorMessage("");
 
-    // TODO: Implement actual authentication
-    // For now, just simulate a login attempt
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Placeholder for auth logic
-      console.log("Login attempt:", { email });
+      await signIn(email, password);
       setStatus("idle");
+      setEmail("");
+      setPassword("");
       onClose();
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setErrorMessage("Login failed. Please try again.");
+      if (error instanceof Error) {
+        if (error.message.includes("invalid-credential")) {
+          setErrorMessage("Invalid email or password.");
+        } else if (error.message.includes("too-many-requests")) {
+          setErrorMessage("Too many attempts. Please try again later.");
+        } else {
+          setErrorMessage("Login failed. Please try again.");
+        }
+      } else {
+        setErrorMessage("Login failed. Please try again.");
+      }
     }
   };
 

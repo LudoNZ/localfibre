@@ -5,13 +5,20 @@ import { useState } from "react";
 import Image from "next/image";
 import styles from "./Header.module.css";
 import LoginModal from "../ui/LoginModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsMenuOpen(false);
   };
 
   return (
@@ -49,12 +56,18 @@ export default function Header() {
               </a>
             </li>
             <li>
-              <button
-                onClick={() => setIsLoginOpen(true)}
-                className={styles.loginButton}
-              >
-                Sign in
-              </button>
+              {user ? (
+                <button onClick={handleSignOut} className={styles.loginButton}>
+                  Sign out
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsLoginOpen(true)}
+                  className={styles.loginButton}
+                >
+                  Sign in
+                </button>
+              )}
             </li>
           </ul>
 
@@ -100,15 +113,21 @@ export default function Header() {
               </a>
             </li>
             <li>
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  setIsLoginOpen(true);
-                }}
-                className={styles.loginButton}
-              >
-                Sign in
-              </button>
+              {user ? (
+                <button onClick={handleSignOut} className={styles.loginButton}>
+                  Sign out
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsLoginOpen(true);
+                  }}
+                  className={styles.loginButton}
+                >
+                  Sign in
+                </button>
+              )}
             </li>
           </ul>
         )}
@@ -117,4 +136,3 @@ export default function Header() {
     </header>
   );
 }
-
