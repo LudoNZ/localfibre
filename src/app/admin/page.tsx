@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import styles from "./Admin.module.css";
+import EditModal from "@/components/ui/EditModal";
 
 interface User {
   uid: string;
@@ -605,7 +606,11 @@ export default function AdminPage() {
             </button>
           </div>
 
-          {showEventForm && (
+          <EditModal
+            isOpen={showEventForm && !editingEvent}
+            onClose={() => setShowEventForm(false)}
+            title="Add Event"
+          >
             <form onSubmit={handleCreateOrUpdateEvent} className={styles.form}>
               <div className={styles.formGroup}>
                 <label>Title</label>
@@ -748,10 +753,160 @@ export default function AdminPage() {
                 </label>
               </div>
               <button type="submit" className="btn-primary">
-                {editingEvent ? "Update Event" : "Create Event"}
+                Create Event
               </button>
             </form>
-          )}
+          </EditModal>
+
+          <EditModal
+            isOpen={!!editingEvent}
+            onClose={() => {
+              setEditingEvent(null);
+              setShowEventForm(false);
+            }}
+            title="Edit Event"
+          >
+            <form onSubmit={handleCreateOrUpdateEvent} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={eventForm.title}
+                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label>Date (optional)</label>
+                  <input
+                    type="date"
+                    value={eventForm.date}
+                    onChange={(e) => setEventForm({ ...eventForm, date: e.target.value, dateTbc: "" })}
+                  />
+                </div>
+                {!eventForm.date && (
+                  <div className={styles.formGroup}>
+                    <label>Date Custom Message</label>
+                    <input
+                      type="text"
+                      value={eventForm.dateTbc}
+                      onChange={(e) => setEventForm({ ...eventForm, dateTbc: e.target.value })}
+                      placeholder="e.g., TBC 2026"
+                    />
+                  </div>
+                )}
+                <div className={styles.formGroup}>
+                  <label>Start Time (optional)</label>
+                  <input
+                    type="time"
+                    value={eventForm.startTime}
+                    onChange={(e) => setEventForm({ ...eventForm, startTime: e.target.value, timeTbc: "" })}
+                  />
+                </div>
+                {eventForm.startTime ? (
+                  <div className={styles.formGroup}>
+                    <label>End Time</label>
+                    <input
+                      type="time"
+                      value={eventForm.endTime}
+                      onChange={(e) => setEventForm({ ...eventForm, endTime: e.target.value })}
+                    />
+                  </div>
+                ) : (
+                  <div className={styles.formGroup}>
+                    <label>Time Custom Message</label>
+                    <input
+                      type="text"
+                      value={eventForm.timeTbc}
+                      onChange={(e) => setEventForm({ ...eventForm, timeTbc: e.target.value })}
+                      placeholder="e.g., Morning session"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label>Location</label>
+                {showNewLocation ? (
+                  <div className={styles.newLocationInput}>
+                    <input
+                      type="text"
+                      value={newLocationName}
+                      onChange={(e) => setNewLocationName(e.target.value)}
+                      placeholder="Enter new location"
+                      autoFocus
+                    />
+                    <button type="button" className="btn-primary" onClick={handleAddLocation}>
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => {
+                        setShowNewLocation(false);
+                        setNewLocationName("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.locationSelect}>
+                    <select
+                      value={eventForm.location}
+                      onChange={(e) => {
+                        if (e.target.value === "__new__") {
+                          setShowNewLocation(true);
+                        } else {
+                          setEventForm({ ...eventForm, location: e.target.value });
+                        }
+                      }}
+                      required
+                    >
+                      <option value="">Select a location</option>
+                      {locations.map((loc) => (
+                        <option key={loc.id} value={loc.name}>
+                          {loc.name}
+                        </option>
+                      ))}
+                      <option value="__new__">+ Add new location</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label>Description</label>
+                <textarea
+                  value={eventForm.description}
+                  onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                  rows={4}
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Register Link (optional)</label>
+                <input
+                  type="text"
+                  value={eventForm.registerLink}
+                  onChange={(e) => setEventForm({ ...eventForm, registerLink: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={eventForm.isUpcoming}
+                    onChange={(e) => setEventForm({ ...eventForm, isUpcoming: e.target.checked })}
+                  />
+                  Upcoming Event
+                </label>
+              </div>
+              <button type="submit" className="btn-primary">
+                Update Event
+              </button>
+            </form>
+          </EditModal>
 
           {loadingData ? (
             <p>Loading events...</p>
@@ -813,7 +968,11 @@ export default function AdminPage() {
             </button>
           </div>
 
-          {showPatternForm && (
+          <EditModal
+            isOpen={showPatternForm && !editingPattern}
+            onClose={() => setShowPatternForm(false)}
+            title="Add Pattern"
+          >
             <form onSubmit={handleCreateOrUpdatePattern} className={styles.form}>
               <div className={styles.formGroup}>
                 <label>Title</label>
@@ -875,10 +1034,79 @@ export default function AdminPage() {
                 className="btn-primary"
                 disabled={uploadingImage || uploadingPdf}
               >
-                {editingPattern ? "Update Pattern" : "Create Pattern"}
+                Create Pattern
               </button>
             </form>
-          )}
+          </EditModal>
+
+          <EditModal
+            isOpen={!!editingPattern}
+            onClose={() => {
+              setEditingPattern(null);
+              setShowPatternForm(false);
+            }}
+            title="Edit Pattern"
+          >
+            <form onSubmit={handleCreateOrUpdatePattern} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={patternForm.title}
+                  onChange={(e) => setPatternForm({ ...patternForm, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Description</label>
+                <textarea
+                  value={patternForm.description}
+                  onChange={(e) => setPatternForm({ ...patternForm, description: e.target.value })}
+                  rows={4}
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Preview Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className={styles.fileInput}
+                />
+                {uploadingImage && <p className={styles.uploading}>Uploading...</p>}
+                {patternForm.image && (
+                  <div className={styles.filePreview}>
+                    <img src={patternForm.image} alt="Preview" className={styles.imagePreview} />
+                  </div>
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label>Pattern PDF</label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handlePdfUpload}
+                  className={styles.fileInput}
+                />
+                {uploadingPdf && <p className={styles.uploading}>Uploading...</p>}
+                {patternForm.pdfUrl && (
+                  <div className={styles.filePreview}>
+                    <a href={patternForm.pdfUrl} target="_blank" rel="noopener noreferrer">
+                      View PDF
+                    </a>
+                  </div>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={uploadingImage || uploadingPdf}
+              >
+                Update Pattern
+              </button>
+            </form>
+          </EditModal>
 
           {loadingData ? (
             <p>Loading patterns...</p>
