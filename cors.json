@@ -1,0 +1,14 @@
+[
+  {
+    "origin": [
+      "http://localhost:3000",
+      "https://localfibre.co.nz",
+      "https://www.localfibre.co.nz",
+      "https://localfibre.vercel.app",
+      "https://*.vercel.app"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "X-Requested-With"]
+  }
+]
