@@ -376,6 +376,59 @@
   margin: var(--spacing-xs) 0 0;
 }
 
+/* Contact messages */
+.messagesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.messageCard {
+  background: var(--color-background-soft);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+}
+
+.messageHeader {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.messageName {
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.messageEmail {
+  color: var(--color-body);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.messageDate {
+  margin-left: auto;
+  color: var(--color-body);
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.messageBody {
+  margin: 0;
+  color: var(--color-body);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Newsletter */
+.subscriberCount {
+  color: var(--color-body);
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
 @media (max-width: 768px) {
   .formRow {
     grid-template-columns: 1fr;

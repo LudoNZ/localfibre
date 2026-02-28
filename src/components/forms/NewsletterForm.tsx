@@ -11,13 +11,21 @@ export default function NewsletterForm() {
     e.preventDefault();
     setStatus("loading");
 
-    // Placeholder for Mailchimp integration
-    // For now, just show success message
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       setStatus("success");
       setEmail("");
       setTimeout(() => setStatus("idle"), 3000);
-    }, 500);
+    } catch {
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
   };
 
   return (

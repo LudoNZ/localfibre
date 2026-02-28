@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db, FieldValue } from "@/lib/firebaseAdmin"
 
+export async function GET() {
+  try {
+    const snapshot = await db
+      .collection("contactMessages")
+      .orderBy("createdAt", "desc")
+      .get()
+
+    const messages = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+    }))
+
+    return NextResponse.json({ messages })
+  } catch (error) {
+    console.error("Error fetching contact messages:", error)
+    return NextResponse.json({ error: "Failed to fetch messages" }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

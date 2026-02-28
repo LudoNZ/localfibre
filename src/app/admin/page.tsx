@@ -40,7 +40,22 @@ interface Pattern {
   pdfUrl: string;
 }
 
-type Tab = "users" | "events" | "patterns";
+interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: string;
+  createdAt: string | null;
+}
+
+interface Subscriber {
+  id: string;
+  email: string;
+  createdAt: string | null;
+}
+
+type Tab = "users" | "events" | "patterns" | "messages" | "newsletter";
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
@@ -50,6 +65,8 @@ export default function AdminPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [patterns, setPatterns] = useState<Pattern[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
 
@@ -213,6 +230,16 @@ export default function AdminPage() {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setPatterns(data.patterns || []);
+      } else if (activeTab === "messages") {
+        const res = await fetch("/api/contact");
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setMessages(data.messages || []);
+      } else if (activeTab === "newsletter") {
+        const res = await fetch("/api/newsletter");
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setSubscribers(data.subscribers || []);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch data");
@@ -477,6 +504,18 @@ export default function AdminPage() {
           onClick={() => setActiveTab("patterns")}
         >
           Patterns
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "messages" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("messages")}
+        >
+          Messages
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "newsletter" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("newsletter")}
+        >
+          Newsletter
         </button>
       </div>
 
@@ -1154,6 +1193,79 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "messages" && (
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Contact Messages</h2>
+          </div>
+          {loadingData ? (
+            <p>Loading messages...</p>
+          ) : messages.length === 0 ? (
+            <p className={styles.empty}>No contact messages yet.</p>
+          ) : (
+            <div className={styles.messagesList}>
+              {messages.map((msg) => (
+                <div key={msg.id} className={styles.messageCard}>
+                  <div className={styles.messageHeader}>
+                    <span className={styles.messageName}>{msg.name}</span>
+                    <span className={styles.messageEmail}>{msg.email}</span>
+                    {msg.createdAt && (
+                      <span className={styles.messageDate}>
+                        {new Date(msg.createdAt).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <p className={styles.messageBody}>{msg.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "newsletter" && (
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Newsletter Subscribers</h2>
+            <span className={styles.subscriberCount}>{subscribers.length} subscriber{subscribers.length !== 1 ? "s" : ""}</span>
+          </div>
+          {loadingData ? (
+            <p>Loading subscribers...</p>
+          ) : subscribers.length === 0 ? (
+            <p className={styles.empty}>No subscribers yet.</p>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Subscribed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {subscribers.map((sub) => (
+                  <tr key={sub.id}>
+                    <td>{sub.email}</td>
+                    <td>
+                      {sub.createdAt
+                        ? new Date(sub.createdAt).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       )}
