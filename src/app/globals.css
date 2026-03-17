@@ -47,6 +47,10 @@ body {
   scroll-behavior: smooth;
 }
 
+main {
+  padding-top: 70px;
+}
+
 body {
   color: var(--color-body);
   background: var(--color-background);

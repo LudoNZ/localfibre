@@ -1,20 +1,25 @@
-import Link from "next/link"
 import Image from "next/image"
 import styles from "./page.module.css"
 import NewsletterForm from "@/components/forms/NewsletterForm"
-import { getUpcomingEvents, getNextEventId } from "@/lib/events"
+import ContactForm from "@/components/forms/ContactForm"
+import { getEvents, getNextEventId } from "@/lib/events"
+import { getPatterns } from "@/lib/patterns"
 import EventCard from "@/components/ui/EventCard"
+import PatternCard from "@/components/ui/PatternCard"
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
 
 export default async function Home() {
-  const upcomingEvents = await getUpcomingEvents()
-  const nextEventId = getNextEventId(upcomingEvents)
+  const events = await getEvents()
+  const upcomingEvents = events.filter((e) => e.isUpcoming)
+  const pastEvents = events.filter((e) => !e.isUpcoming)
+  const nextEventId = getNextEventId(events)
+  const patterns = await getPatterns()
 
   return (
     <div className={styles.home}>
-      {/* Hero Section */}
-      <section className={styles.hero}>
+      {/* Hero */}
+      <section id="home" className={styles.hero}>
         <div className="container">
           <div className={styles.heroContent}>
             <div className={styles.heroImage}>
@@ -24,7 +29,7 @@ export default async function Home() {
                 width={600}
                 height={300}
                 priority
-                style={{ height: "auto", width: "100%", maxWidth: "600px" }}
+                style={{ height: "auto", width: "100%", maxWidth: "520px" }}
               />
             </div>
             <p className={styles.heroTagline}>
@@ -32,61 +37,100 @@ export default async function Home() {
               practice in Aotearoa.
             </p>
             <div className={styles.heroCTAs}>
-              <Link href="/events" className="btn-primary">
+              <a href="#events" className="btn-primary">
                 Join a Workshop
-              </Link>
-              <Link href="/patterns" className="btn-secondary">
+              </a>
+              <a href="#patterns" className="btn-secondary">
                 Download Free Patterns
-              </Link>
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Upcoming Events Preview */}
-      <section className={styles.eventsSection}>
+      {/* About */}
+      <section id="about" className={styles.aboutSection}>
         <div className="container">
-          <h2>Upcoming Events</h2>
-          <div className={styles.eventsGrid}>
-            {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} isNext={event.id === nextEventId} />
-            ))}
-          </div>
-          <div className={styles.sectionCTAs}>
-            <Link href="/events" className="btn-secondary">
-              View All Events
-            </Link>
+          <div className={styles.aboutLayout}>
+            <div className={styles.aboutText}>
+              <h2>About Local Fibre</h2>
+              <p>
+                Local Fibre is a community-driven creative initiative that
+                brings together people who love to make, mend, and connect.
+              </p>
+              <p>
+                Valuing sustainability, community, and shared learning, we offer
+                welcoming spaces for fibre crafters of all kinds—knitters,
+                stitchers, upcyclers, weavers, and curious beginners—to gather,
+                share skills, and spark inspiration.
+              </p>
+            </div>
+            <div className={styles.valuesGrid}>
+              <div className={styles.valueCard}>
+                <h3>Sustainability</h3>
+                <p>
+                  Promoting zero-waste practices, reuse, and mindful consumption
+                  of textile resources.
+                </p>
+              </div>
+              <div className={styles.valueCard}>
+                <h3>Shared Learning</h3>
+                <p>
+                  Creating spaces where everyone can learn, teach, and grow
+                  together regardless of skill level.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="stitched-line"></div>
-
-      {/* About Section */}
-      <section className={styles.aboutSection}>
+      {/* Events */}
+      <section id="events" className={styles.eventsSection}>
         <div className="container">
-          <h2>About Local Fibre</h2>
-          <div className={styles.aboutContent}>
-            <p>
-              Local Fibre is a community-driven creative initiative that brings
-              together people who love to make, mend, and connect.
-            </p>
-            <p>
-              Valuing sustainability, community, and shared learning, we offer
-              welcoming spaces for fibre crafters of all kinds—knitters,
-              stitchers, upcyclers, weavers, and curious beginners—to gather,
-              share skills, and spark inspiration.
+          <div className={styles.sectionHeader}>
+            <h2>Upcoming Events</h2>
+            <p className={styles.sectionTagline}>
+              Join us for Fibre &amp; Friends and other community sewing events.
             </p>
           </div>
+          {upcomingEvents.length > 0 ? (
+            <div className={styles.eventsGrid}>
+              {upcomingEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  isNext={event.id === nextEventId}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyState}>
+              No upcoming events scheduled. Check back soon!
+            </p>
+          )}
+          {pastEvents.length > 0 && (
+            <>
+              <h3 className={styles.subHeading}>Past Events</h3>
+              <div className={styles.eventsGrid}>
+                {pastEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      <div className="stitched-line"></div>
-
-      {/* Workshops & Social Sewing */}
+      {/* Workshops */}
       <section className={styles.workshopsSection}>
         <div className="container">
-          <h2>Workshops + Social Sewing</h2>
+          <div className={styles.sectionHeader}>
+            <h2>Workshops + Social Sewing</h2>
+            <p className={styles.sectionTagline}>
+              Welcoming spaces for makers of all skill levels.
+            </p>
+          </div>
           <div className={styles.workshopsGrid}>
             <div className={styles.workshopCard}>
               <h3>Social Sewing Sessions</h3>
@@ -115,65 +159,84 @@ export default async function Home() {
         </div>
       </section>
 
-      <div className="stitched-line"></div>
-
-      {/* Community Values */}
-      <section className={styles.valuesSection}>
+      {/* Patterns */}
+      <section id="patterns" className={styles.patternsSection}>
         <div className="container">
-          <h2>Our Values</h2>
-          <div className={styles.valuesGrid}>
-            <div className={styles.valueCard}>
-              <h3>Whakawhanaungatanga</h3>
-              <p>
-                Building meaningful connections and relationships within our
-                community.
-              </p>
-            </div>
-            <div className={styles.valueCard}>
-              <h3>Sustainability</h3>
-              <p>
-                Promoting zero-waste practices, reuse, and mindful consumption
-                of textile resources.
-              </p>
-            </div>
-            <div className={styles.valueCard}>
-              <h3>Shared Learning</h3>
-              <p>
-                Creating spaces where everyone can learn, teach, and grow
-                together regardless of skill level.
-              </p>
-            </div>
+          <div className={styles.sectionHeader}>
+            <h2>Free Patterns</h2>
+            <p className={styles.sectionTagline}>
+              Resource-sharing for a creative, low-waste Aotearoa.
+            </p>
           </div>
+          {patterns.length > 0 ? (
+            <div className={styles.patternsGrid}>
+              {patterns.map((pattern) => (
+                <PatternCard key={pattern.id} pattern={pattern} />
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyState}>
+              Patterns coming soon! Check back later.
+            </p>
+          )}
+          <p className={styles.kohaText}>
+            All patterns are free to download. If you&apos;d like to support our
+            work, koha (donation) options will be available soon.
+          </p>
         </div>
       </section>
 
-      <div className="stitched-line"></div>
-
-      {/* Newsletter Signup */}
-      <section className={styles.newsletterSection}>
+      {/* Newsletter */}
+      <section id="newsletter" className={styles.newsletterSection}>
         <div className="container">
-          <h2>Stay Connected</h2>
-          <p className={styles.newsletterDescription}>
-            Subscribe to our newsletter for updates on events, workshops, and
-            community news.
-          </p>
+          <div className={styles.sectionHeader}>
+            <h2>Stay Connected</h2>
+            <p className={styles.sectionTagline}>
+              Subscribe for updates on events, workshops, and community news.
+            </p>
+          </div>
           <NewsletterForm />
         </div>
       </section>
 
-      {/* Final CTAs */}
-      <section className={styles.finalCTAs}>
+      {/* Contact */}
+      <section id="contact" className={styles.contactSection}>
         <div className="container">
-          <div className={styles.ctaButtons}>
-            <Link href="/events" className="btn-primary">
-              Join a Workshop
-            </Link>
-            <Link href="/patterns" className="btn-secondary">
-              Download Free Patterns
-            </Link>
-            <a href="#newsletter" className="btn-secondary">
-              Sign Up to Newsletter
-            </a>
+          <div className={styles.sectionHeader}>
+            <h2>Get in Touch</h2>
+            <p className={styles.sectionTagline}>
+              Have questions or want to get involved? We&apos;d love to hear
+              from you.
+            </p>
+          </div>
+          <div className={styles.contactContent}>
+            <div className={styles.contactInfo}>
+              <h3>Contact Information</h3>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Email</span>
+                <a href="mailto:hello@localfibre.co.nz">
+                  hello@localfibre.co.nz
+                </a>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Instagram</span>
+                <a
+                  href="https://www.instagram.com/localfibre/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  @localfibre
+                </a>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Events</span>
+                <a href="#events">View upcoming events</a>
+              </div>
+            </div>
+            <div className={styles.formWrapper}>
+              <h3>Send us a Message</h3>
+              <ContactForm />
+            </div>
           </div>
         </div>
       </section>

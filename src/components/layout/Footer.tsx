@@ -1,4 +1,3 @@
-import Link from "next/link";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
@@ -8,7 +7,7 @@ export default function Footer() {
         <div className={styles.footerContent}>
           <div className={styles.footerSection}>
             <p className={styles.footerText}>
-              Community sewing & zero-waste textiles, Aotearoa
+              Community sewing &amp; zero-waste textiles, Aotearoa
             </p>
             <p className={styles.email}>
               <a href="mailto:hello@localfibre.co.nz">hello@localfibre.co.nz</a>
@@ -23,7 +22,6 @@ export default function Footer() {
                   href="https://www.instagram.com/localfibre/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Instagram"
                 >
                   Instagram
                 </a>
@@ -33,7 +31,6 @@ export default function Footer() {
                   href="https://humanitix.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Humanitix"
                 >
                   Humanitix
                 </a>
@@ -44,18 +41,11 @@ export default function Footer() {
           <div className={styles.footerSection}>
             <h4>Quick Links</h4>
             <ul className={styles.footerLinks}>
-              <li>
-                <Link href="/">Home</Link>
-              </li>
-              <li>
-                <Link href="/events">Events</Link>
-              </li>
-              <li>
-                <Link href="/patterns">Patterns</Link>
-              </li>
-              <li>
-                <Link href="/contact">Contact</Link>
-              </li>
+              <li><a href="/#about">About</a></li>
+              <li><a href="/#events">Events</a></li>
+              <li><a href="/#patterns">Patterns</a></li>
+              <li><a href="/#newsletter">Newsletter</a></li>
+              <li><a href="/#contact">Contact</a></li>
             </ul>
           </div>
         </div>
@@ -67,4 +57,3 @@ export default function Footer() {
     </footer>
   );
 }
-

@@ -2,10 +2,10 @@
   min-height: 100vh;
 }
 
-/* Hero Section */
+/* ── Hero ───────────────────────────────────────────── */
 .hero {
-  background: linear-gradient(135deg, var(--color-background-soft) 0%, var(--color-background) 100%);
-  padding: var(--spacing-xl) 0;
+  background: linear-gradient(160deg, var(--color-background-soft) 0%, var(--color-background) 65%);
+  padding: 6rem 0 5rem;
   text-align: center;
 }
 
@@ -14,20 +14,21 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-md);
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
 .heroImage {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
 }
 
 .heroTagline {
-  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-  line-height: 1.7;
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  line-height: 1.8;
   color: var(--color-body);
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 560px;
+  margin: 0;
+  opacity: 0.8;
 }
 
 .heroCTAs {
@@ -35,64 +36,105 @@
   gap: var(--spacing-sm);
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
 }
 
-/* Events Section */
-.eventsSection {
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-background);
-}
-
-.eventsSection h2 {
+/* ── Shared section utilities ───────────────────────── */
+.sectionHeader {
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.sectionHeader h2 {
+  margin-bottom: 0.5rem;
+}
+
+.sectionTagline {
+  color: var(--color-body);
+  opacity: 0.65;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.subHeading {
+  margin: var(--spacing-xl) 0 var(--spacing-lg);
+  color: var(--color-heading);
+  opacity: 0.6;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--color-body);
+  opacity: 0.55;
+  font-style: italic;
+  padding: var(--spacing-xl) 0;
+  margin: 0;
+}
+
+/* ── About ──────────────────────────────────────────── */
+.aboutSection {
+  padding: 5rem 0;
+  background-color: var(--color-background-soft);
+}
+
+.aboutLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+
+.aboutText h2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.aboutText p {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  opacity: 0.9;
+}
+
+.valuesGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.valueCard {
+  background: var(--color-background);
+  padding: 1.25rem var(--spacing-md);
+  border-radius: 10px;
+  border-left: 3px solid var(--color-accent-clay);
+}
+
+.valueCard h3 {
+  margin-bottom: 0.35rem;
+  font-size: 1.15rem;
+}
+
+.valueCard p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+/* ── Events ─────────────────────────────────────────── */
+.eventsSection {
+  padding: 5rem 0;
+  background-color: var(--color-background);
 }
 
 .eventsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
 }
 
-.sectionCTAs {
-  text-align: center;
-  margin-top: var(--spacing-lg);
-}
-
-/* About Section */
-.aboutSection {
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-background-soft);
-}
-
-.aboutSection h2 {
-  text-align: center;
-  margin-bottom: var(--spacing-lg);
-}
-
-.aboutContent {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.aboutContent p {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  margin-bottom: var(--spacing-md);
-}
-
-/* Workshops Section */
+/* ── Workshops ──────────────────────────────────────── */
 .workshopsSection {
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-background);
-}
-
-.workshopsSection h2 {
-  text-align: center;
-  margin-bottom: var(--spacing-lg);
+  padding: 5rem 0;
+  background-color: var(--color-background-soft);
 }
 
 .workshopsGrid {
@@ -102,103 +144,130 @@
 }
 
 .workshopCard {
-  background-color: var(--color-background-soft);
+  background: var(--color-background);
   padding: var(--spacing-lg);
-  border-radius: 16px;
-  border: 1px solid var(--color-accent-cream);
+  border-radius: 12px;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.workshopCard:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .workshopCard h3 {
   margin-bottom: var(--spacing-sm);
-  color: var(--color-heading);
 }
 
 .workshopCard p {
   line-height: 1.7;
+  opacity: 0.85;
+  margin: 0;
 }
 
-/* Values Section */
-.valuesSection {
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-background-soft);
+/* ── Patterns ───────────────────────────────────────── */
+.patternsSection {
+  padding: 5rem 0;
+  background-color: var(--color-background);
 }
 
-.valuesSection h2 {
-  text-align: center;
-  margin-bottom: var(--spacing-lg);
-}
-
-.valuesGrid {
+.patternsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--spacing-md);
 }
 
-.valueCard {
-  background-color: var(--color-background);
-  padding: var(--spacing-lg);
-  border-radius: 16px;
-  border: 1px solid var(--color-accent-cream);
+.kohaText {
   text-align: center;
+  font-style: italic;
+  opacity: 0.6;
+  margin: var(--spacing-lg) 0 0;
+  font-size: 0.95rem;
 }
 
-.valueCard h3 {
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-heading);
-}
-
-.valueCard p {
-  line-height: 1.7;
-}
-
-/* Newsletter Section */
+/* ── Newsletter ─────────────────────────────────────── */
 .newsletterSection {
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-background);
+  padding: 5rem 0;
+  background-color: var(--color-background-soft);
   text-align: center;
 }
 
-.newsletterSection h2 {
-  margin-bottom: var(--spacing-sm);
+/* ── Contact ────────────────────────────────────────── */
+.contactSection {
+  padding: 5rem 0;
+  background-color: var(--color-background);
 }
 
-.newsletterDescription {
+.contactContent {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+
+.contactInfo h3 {
   margin-bottom: var(--spacing-md);
-  color: var(--color-body);
 }
 
-/* Final CTAs */
-.finalCTAs {
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-background-soft);
-}
-
-.ctaButtons {
+.infoItem {
+  margin-bottom: var(--spacing-md);
   display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
+.infoLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--color-accent-clay);
+  font-weight: 600;
+}
+
+.infoItem a {
+  color: var(--color-body);
+  font-size: 1rem;
+}
+
+.infoItem a:hover {
+  color: var(--color-heading);
+  opacity: 1;
+}
+
+.formWrapper h3 {
+  margin-bottom: var(--spacing-md);
+}
+
+/* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 768px) {
   .hero {
-    padding: var(--spacing-lg) 0;
+    padding: var(--spacing-xl) 0 var(--spacing-lg);
   }
 
-  .heroCTAs,
-  .ctaButtons {
+  .heroCTAs {
     flex-direction: column;
     width: 100%;
   }
 
-  .heroCTAs a,
-  .ctaButtons a {
+  .heroCTAs a {
     width: 100%;
+    text-align: center;
+  }
+
+  .aboutLayout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .contactContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
   }
 
   .eventsGrid,
   .workshopsGrid,
-  .valuesGrid {
+  .patternsGrid {
     grid-template-columns: 1fr;
   }
 }

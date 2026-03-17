@@ -2,18 +2,47 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import styles from "./Header.module.css";
 import LoginModal from "../ui/LoginModal";
 import { useAuth } from "@/context/AuthContext";
 
+const navLinks = [
+  { label: "About", id: "about" },
+  { label: "Events", id: "events" },
+  { label: "Patterns", id: "patterns" },
+  { label: "Contact", id: "contact" },
+];
+
 export default function Header() {
   const { user, signOut, isAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const pathname = usePathname();
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    setIsMenuOpen(false);
+    if (pathname === "/") {
+      e.preventDefault();
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", `#${sectionId}`);
+      }
+    }
+  };
+
+  const handleNewsletterClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    setIsMenuOpen(false);
+    if (pathname === "/") {
+      e.preventDefault();
+      const el = document.getElementById("newsletter");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", "#newsletter");
+      }
+    }
   };
 
   const handleSignOut = async () => {
@@ -25,37 +54,40 @@ export default function Header() {
     <header className={styles.header}>
       <div className="container">
         <nav className={styles.nav}>
-          <Link href="/" className={styles.logo}>
+          <Link href="/" className={styles.logo} onClick={() => setIsMenuOpen(false)}>
             <Image
               src="/images/LFLogo-Horizontal.png"
               alt="Local Fibre"
-              width={200}
-              height={60}
+              width={180}
+              height={54}
               priority
-              style={{ height: "auto", width: "auto", maxWidth: "200px" }}
+              style={{ height: "auto", width: "auto", maxWidth: "180px" }}
             />
           </Link>
 
           {/* Desktop Navigation */}
           <ul className={styles.navList}>
+            {navLinks.map(({ label, id }) => (
+              <li key={id}>
+                <a
+                  href={`/#${id}`}
+                  className={styles.navLink}
+                  onClick={(e) => handleNavClick(e, id)}
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
             <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <Link href="/events">Events</Link>
-            </li>
-            <li>
-              <Link href="/patterns">Patterns</Link>
-            </li>
-            <li>
-              <Link href="/contact">Contact</Link>
-            </li>
-            <li>
-              <a href="#newsletter" className="btn-secondary">
+              <a
+                href="/#newsletter"
+                className={styles.newsletterBtn}
+                onClick={handleNewsletterClick}
+              >
                 Newsletter
               </a>
             </li>
-            <li>
+            <li className={styles.authItem}>
               {user ? (
                 <div className={styles.authButtons}>
                   <button onClick={handleSignOut} className={styles.loginButton}>
@@ -71,10 +103,7 @@ export default function Header() {
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={() => setIsLoginOpen(true)}
-                  className={styles.loginButton}
-                >
+                <button onClick={() => setIsLoginOpen(true)} className={styles.loginButton}>
                   Sign in
                 </button>
               )}
@@ -84,41 +113,34 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             className={styles.menuButton}
-            onClick={toggleMenu}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
             aria-expanded={isMenuOpen}
           >
-            <span className={styles.menuIcon}>
-              {isMenuOpen ? "✕" : "☰"}
-            </span>
+            <span className={styles.menuIcon}>{isMenuOpen ? "✕" : "☰"}</span>
           </button>
         </nav>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <ul className={styles.mobileNavList}>
+            {navLinks.map(({ label, id }) => (
+              <li key={id}>
+                <a
+                  href={`/#${id}`}
+                  className={styles.mobileNavLink}
+                  onClick={(e) => handleNavClick(e, id)}
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
             <li>
-              <Link href="/" onClick={() => setIsMenuOpen(false)}>
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link href="/events" onClick={() => setIsMenuOpen(false)}>
-                Events
-              </Link>
-            </li>
-            <li>
-              <Link href="/patterns" onClick={() => setIsMenuOpen(false)}>
-                Patterns
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
-                Contact
-              </Link>
-            </li>
-            <li>
-              <a href="#newsletter" onClick={() => setIsMenuOpen(false)} className="btn-secondary">
+              <a
+                href="/#newsletter"
+                className={styles.mobileNavLink}
+                onClick={handleNewsletterClick}
+              >
                 Newsletter
               </a>
             </li>
@@ -144,10 +166,7 @@ export default function Header() {
                 </div>
               ) : (
                 <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setIsLoginOpen(true);
-                  }}
+                  onClick={() => { setIsMenuOpen(false); setIsLoginOpen(true); }}
                   className={styles.loginButton}
                 >
                   Sign in
