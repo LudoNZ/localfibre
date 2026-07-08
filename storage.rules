@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Pattern images and PDFs - publicly readable, admin-only upload
+    match /patterns/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Everything else is denied by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
