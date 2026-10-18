@@ -113,6 +113,35 @@
   font-size: 1.15rem;
 }
 
+.recipients {
+  margin-bottom: var(--spacing-md);
+}
+
+.recipientsLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mustard);
+  margin-bottom: 0.6rem;
+}
+
+.recipients ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recipients li {
+  padding: 0.35rem 0.85rem;
+  border: 2px solid var(--cream);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cream);
+}
+
 .programmeCTAs {
   display: flex;
   flex-wrap: wrap;

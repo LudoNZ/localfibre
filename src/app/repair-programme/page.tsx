@@ -9,6 +9,8 @@ import PhotoFrame from "@/components/ui/PhotoFrame"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import { site } from "@/data/site"
+import { machineRecipients } from "@/data/partners"
+import PartnersList from "@/components/ui/PartnersList"
 
 export const dynamic = "force-dynamic"
 
@@ -128,6 +130,19 @@ export default async function RepairProgrammePage() {
       </section>
 
       <WaveDivider from="var(--rust)" to="var(--cream)" />
+
+      {machineRecipients.length > 0 && (
+        <section className={styles.recipientsSection}>
+          <div className="container">
+            <SectionHeading
+              eyebrow="Where machines have gone"
+              title="Sewing machines in the community"
+              intro="As well as individuals, machines from the programme have gone to community organisations including:"
+            />
+            <PartnersList partners={machineRecipients} />
+          </div>
+        </section>
+      )}
 
       {gallery.length > 0 && (
         <section className={styles.gallerySection}>

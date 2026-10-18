@@ -14,6 +14,7 @@ import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import PartnersList from "@/components/ui/PartnersList"
 import { site } from "@/data/site"
+import { machineRecipients } from "@/data/partners"
 
 export const dynamic = "force-dynamic"
 
@@ -24,8 +25,8 @@ const offerings = [
     tone: "mustard",
   },
   {
-    title: "Workshops & mending",
-    text: "Hands-on workshops in repair, visible mending and zero-waste techniques that keep clothes in use for longer.",
+    title: "Fabric swap events",
+    text: "Bring the fabric, yarn, haberdashery and patterns you no longer need, and take home something new to you, keeping textiles in use and out of landfill.",
     tone: "tan",
   },
   {
@@ -146,6 +147,16 @@ export default async function Home() {
                 <span>They go to someone on our waiting list</span>
               </li>
             </ol>
+            {machineRecipients.length > 0 && (
+              <div className={styles.recipients}>
+                <p className={styles.recipientsLabel}>Machines have gone to groups including</p>
+                <ul>
+                  {machineRecipients.map((org) => (
+                    <li key={org.name}>{org.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className={styles.programmeCTAs}>
               <Link href="/repair-programme" className="btn-accent">
                 How the programme works
@@ -201,7 +212,7 @@ export default async function Home() {
           <SectionHeading
             eyebrow="Events"
             title="Upcoming events"
-            intro="Join us for Social Sewing and other community sewing events around West Auckland."
+            intro="Join us for Social Sewing, Fabric Swaps and other community sewing events around West Auckland."
           />
           {upcomingEvents.length > 0 ? (
             <div className={styles.eventsGrid}>

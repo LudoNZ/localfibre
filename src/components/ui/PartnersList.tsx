@@ -1,9 +1,9 @@
 import Image from "next/image";
-import { partners } from "@/data/partners";
+import { partners as defaultPartners, Partner } from "@/data/partners";
 import styles from "./PartnersList.module.css";
 
-/** Partners, venues and supporters as logo or name badges */
-export default function PartnersList() {
+/** Organisations as logo or name badges (partners by default) */
+export default function PartnersList({ partners = defaultPartners }: { partners?: Partner[] }) {
   if (partners.length === 0) return null;
 
   return (
@@ -22,7 +22,7 @@ export default function PartnersList() {
             ) : (
               <span className={styles.name}>{partner.name}</span>
             )}
-            <span className={styles.role}>{partner.role}</span>
+            {partner.role && <span className={styles.role}>{partner.role}</span>}
           </>
         );
 

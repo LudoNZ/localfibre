@@ -60,7 +60,7 @@ export default async function AboutPage() {
               and spark inspiration.
             </p>
             <p>
-              We run social sewing sessions and workshops, share free patterns, and through our{" "}
+              We run social sewing sessions and fabric swap events, share free patterns, and through our{" "}
               <Link href="/repair-programme">Sewing Machine Repair Programme</Link> we service donated
               machines and rehome them with people and groups who will use them.
             </p>
