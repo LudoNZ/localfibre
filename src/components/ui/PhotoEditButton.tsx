@@ -226,7 +226,7 @@ export default function PhotoEditButton({ slot, photo }: PhotoEditButtonProps) {
                   type="text"
                   value={alt}
                   onChange={(e) => setAlt(e.target.value)}
-                  placeholder="e.g. Two people sewing at a Titirangi workshop"
+                  placeholder="e.g. Two people sewing at a Local Fibre session"
                   maxLength={300}
                   disabled={busy}
                 />

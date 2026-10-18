@@ -120,8 +120,8 @@ export default async function AboutPage() {
           </div>
           <div className={styles.prose}>
             <p>
-              Our events run in West Auckland, including at Titirangi Community House, and
-              sewing machines from our programme are collected from West Auckland.
+              Our events run in West Auckland, and sewing machines from our programme are
+              collected from West Auckland.
             </p>
             <p>{site.orgStatus}</p>
           </div>
