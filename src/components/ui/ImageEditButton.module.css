@@ -34,25 +34,119 @@
   gap: var(--spacing-sm);
 }
 
-.preview {
+/* Preview + picker: the whole area is one big tap target */
+.picker {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 4 / 3;
+  max-height: 45vh;
+  width: 100%;
   background: var(--sand);
-  border: 2px solid var(--ink);
-  border-radius: 12px;
+  border: 2px dashed var(--ink);
+  border-radius: 14px;
   overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.preview img {
+.picker:hover,
+.dragging {
+  background: #f7e3c4;
+  border-style: solid;
+}
+
+.picker:focus-within {
+  box-shadow: 0 0 0 3px var(--mustard);
+}
+
+.picker img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.preview span {
-  opacity: 0.6;
+.pickerEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: var(--spacing-sm);
+  text-align: center;
+  color: var(--ink);
+}
+
+.pickerEmpty strong {
+  font-size: 1.05rem;
+}
+
+.pickerEmpty .cameraIcon {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  box-sizing: content-box;
+  background: var(--mustard);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.pickerChange {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  min-height: 40px;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--mustard);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sticker-sm);
+}
+
+.pickerChange .cameraIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.cameraIcon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* "or drag one here" only makes sense with a mouse */
+@media (hover: none) {
+  .desktopOnly {
+    display: none;
+  }
+}
+
+/* Logos sit on a light background and are never cropped */
+.logoPreview {
+  aspect-ratio: 5 / 2;
+  background: #fff;
+}
+
+.logoPreview img {
+  object-fit: contain;
+  padding: var(--spacing-sm);
+}
+
+.fileInfo {
+  margin: -0.25rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  overflow-wrap: anywhere;
 }
 
 .field {
@@ -68,7 +162,9 @@
   padding: 0.75rem 1rem;
   border: 2px solid var(--ink);
   border-radius: 12px;
+  /* 16px stops iPhone Safari zooming in when the field is tapped */
   font: inherit;
+  font-size: 16px;
   font-weight: 400;
   background: #fffaf2;
 }
@@ -76,16 +172,6 @@
 .field input[type="text"]:focus {
   outline: none;
   box-shadow: 0 0 0 3px var(--mustard);
-}
-
-.field input[type="file"] {
-  font: inherit;
-  font-weight: 400;
-  padding: 0.6rem;
-  border: 2px dashed var(--ink);
-  border-radius: 12px;
-  background: #fffaf2;
-  max-width: 100%;
 }
 
 .hint {
@@ -118,13 +204,18 @@
   text-underline-offset: 3px;
 }
 
-/* Logos sit on a light background and are never cropped */
-.logoPreview {
-  aspect-ratio: 5 / 2;
-  background: #fff;
-  padding: var(--spacing-sm);
-}
+@media (max-width: 768px) {
+  /* Keep Save reachable at the bottom of the sheet */
+  .actions {
+    position: sticky;
+    bottom: 0;
+    margin: 0 calc(-1 * var(--spacing-sm)) calc(-1 * var(--spacing-sm));
+    padding: var(--spacing-sm) var(--spacing-sm) calc(var(--spacing-sm) + env(safe-area-inset-bottom));
+    background: var(--cream);
+    border-top: 2px solid var(--ink);
+  }
 
-.logoPreview img {
-  object-fit: contain;
+  .actions :global(.btn-primary) {
+    flex: 1;
+  }
 }

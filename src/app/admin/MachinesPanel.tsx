@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
+import { optimiseImage } from "@/lib/imageUpload";
 import EditModal from "@/components/ui/EditModal";
 import {
   MACHINE_CONDITIONS,
@@ -54,20 +55,6 @@ const formatDate = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : "-";
-
-// Shrink phone photos before upload so pages and emails stay quick
-async function resizeImage(file: File, maxSize = 1600): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not process image"))), "image/jpeg", 0.85)
-  );
-}
 
 export default function MachinesPanel({ user }: { user: User | null }) {
   const [machines, setMachines] = useState<SewingMachine[]>([]);
@@ -171,10 +158,12 @@ export default function MachinesPanel({ user }: { user: User | null }) {
     try {
       const urls = await Promise.all(
         files.map(async (file) => {
-          const blob = await resizeImage(file);
+          // Shrink phone photos before upload so pages and emails stay quick
+          const { variants } = await optimiseImage(file, { widths: [1600] });
+          const { blob, ext } = variants[variants.length - 1];
           const safeName = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9-]/g, "_");
-          const storageRef = ref(storage, `sewingMachines/${Date.now()}-${safeName}.jpg`);
-          await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
+          const storageRef = ref(storage, `sewingMachines/${Date.now()}-${safeName}.${ext}`);
+          await uploadBytes(storageRef, blob, { contentType: blob.type });
           return getDownloadURL(storageRef);
         })
       );

@@ -10,39 +10,89 @@ export interface UploadOptions {
   keepAlpha?: boolean
 }
 
-interface Variant {
+export interface Variant {
   width: number
+  height: number
   blob: Blob
   ext: string
 }
 
-/** Resize to each width as WebP, falling back to PNG/JPEG where WebP isn't supported */
-async function makeVariants(bitmap: ImageBitmap, { widths, keepAlpha }: UploadOptions): Promise<Variant[]> {
-  const max = widths[widths.length - 1]
-  const sizes = [...new Set([...widths.filter((w) => w < bitmap.width), Math.min(bitmap.width, max)])].sort(
-    (a, b) => a - b
-  )
+const MAX_FILE_MB = 40
 
-  const variants: Variant[] = []
-  for (const width of sizes) {
+// Safari can't encode WebP and silently returns PNG, which is slow to make.
+// Check once with a tiny canvas so we go straight to the right format.
+let webpSupport: Promise<boolean> | null = null
+function canEncodeWebp() {
+  webpSupport ??= new Promise((resolve) => {
     const canvas = document.createElement("canvas")
-    canvas.width = width
-    canvas.height = Math.round((bitmap.height * width) / bitmap.width)
-    const ctx = canvas.getContext("2d")!
-    ctx.imageSmoothingQuality = "high"
-    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    canvas.width = canvas.height = 2
+    canvas.toBlob((blob) => resolve(blob?.type === "image/webp"), "image/webp", 0.8)
+  })
+  return webpSupport
+}
 
-    const toBlob = (type: string, quality?: number) =>
-      new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
-    let blob = await toBlob("image/webp", 0.82)
-    let ext = "webp"
-    if (!blob || blob.type !== "image/webp") {
-      ;[blob, ext] = keepAlpha ? [await toBlob("image/png"), "png"] : [await toBlob("image/jpeg", 0.85), "jpg"]
+type Drawable = ImageBitmap | HTMLImageElement
+
+/** Decode a photo, respecting the phone's rotation (EXIF orientation) */
+async function decode(file: File): Promise<{ image: Drawable; width: number; height: number; release: () => void }> {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
+    return { image: bitmap, width: bitmap.width, height: bitmap.height, release: () => bitmap.close() }
+  } catch {
+    // Older Safari: fall back to an <img>, which also applies EXIF rotation
+    const url = URL.createObjectURL(file)
+    try {
+      const img = new Image()
+      img.src = url
+      await img.decode()
+      return { image: img, width: img.naturalWidth, height: img.naturalHeight, release: () => URL.revokeObjectURL(url) }
+    } catch {
+      URL.revokeObjectURL(url)
+      throw new Error(
+        "This image couldn't be read. Try a JPG or PNG (on iPhone, photos from the Photos app work fine)."
+      )
     }
-    if (!blob) throw new Error("Could not process this image")
-    variants.push({ width, blob, ext })
   }
-  return variants
+}
+
+/** Resize a photo to each responsive width. Exported so it can be tested on its own. */
+export async function optimiseImage(file: File, { widths, keepAlpha }: UploadOptions) {
+  if (!file.type.startsWith("image/") && file.type !== "") {
+    throw new Error("That file isn't an image.")
+  }
+  if (file.size > MAX_FILE_MB * 1024 * 1024) {
+    throw new Error(`That image is over ${MAX_FILE_MB}MB. Please choose a smaller one.`)
+  }
+
+  const { image, width, height, release } = await decode(file)
+  const [type, ext, quality] = (await canEncodeWebp())
+    ? ["image/webp", "webp", 0.82]
+    : keepAlpha
+      ? ["image/png", "png", undefined]
+      : ["image/jpeg", "jpg", 0.85]
+
+  const max = widths[widths.length - 1]
+  const sizes = [...new Set([...widths.filter((w) => w < width), Math.min(width, max)])].sort((a, b) => a - b)
+
+  try {
+    const variants: Variant[] = []
+    for (const w of sizes) {
+      const canvas = document.createElement("canvas")
+      canvas.width = w
+      canvas.height = Math.round((height * w) / width)
+      const ctx = canvas.getContext("2d")!
+      ctx.imageSmoothingQuality = "high"
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
+      if (!blob) throw new Error("Could not process this image.")
+      variants.push({ width: w, height: canvas.height, blob, ext: ext as string })
+      // Free canvas memory straight away (matters on phones)
+      canvas.width = canvas.height = 0
+    }
+    return { variants, width, height }
+  } finally {
+    release()
+  }
 }
 
 /**
@@ -68,19 +118,21 @@ export async function uploadImage(
   }
 
   onProgress?.("Optimising…")
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
-  const { width, height } = bitmap
-  const variants = await makeVariants(bitmap, options)
-  bitmap.close()
+  const { variants, width, height } = await optimiseImage(file, options)
 
-  const uploaded: { width: number; url: string; path: string }[] = []
-  for (const [i, v] of variants.entries()) {
-    onProgress?.(`Uploading size ${i + 1} of ${variants.length}…`)
-    const path = `${folder}/${stamp}-${v.width}.${v.ext}`
-    const storageRef = ref(storage, path)
-    await uploadBytes(storageRef, v.blob, { contentType: v.blob.type, cacheControl })
-    uploaded.push({ width: v.width, url: await getDownloadURL(storageRef), path })
-  }
+  // Upload all sizes at once: much quicker on mobile connections
+  let done = 0
+  onProgress?.(`Uploading… 0 of ${variants.length}`)
+  const uploaded = await Promise.all(
+    variants.map(async (v) => {
+      const path = `${folder}/${stamp}-${v.width}.${v.ext}`
+      const storageRef = ref(storage, path)
+      await uploadBytes(storageRef, v.blob, { contentType: v.blob.type, cacheControl })
+      const url = await getDownloadURL(storageRef)
+      onProgress?.(`Uploading… ${++done} of ${variants.length}`)
+      return { width: v.width, url, path }
+    })
+  )
 
   // Fallback src for browsers that ignore srcset: the middle size
   const fallback = uploaded[Math.floor((uploaded.length - 1) / 2)]

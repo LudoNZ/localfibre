@@ -26,6 +26,13 @@ interface ImageEditButtonProps {
   className?: string;
 }
 
+const CameraIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.cameraIcon}>
+    <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </svg>
+);
+
 /** Admin-only button that opens an upload dialog for one image on the page */
 export default function ImageEditButton({
   endpoint,
@@ -47,6 +54,7 @@ export default function ImageEditButton({
   const [alt, setAlt] = useState(current?.alt ?? "");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [dragging, setDragging] = useState(false);
   const busy = status !== "";
   // Only images uploaded here (not defaults from the code) can be edited or removed
   const isUploaded = !!current?.paths?.length;
@@ -70,6 +78,16 @@ export default function ImageEditButton({
 
   const closeModal = () => {
     if (!busy) setOpen(false);
+  };
+
+  const chooseFile = (picked: File | undefined) => {
+    if (!picked) return;
+    if (picked.type && !picked.type.startsWith("image/")) {
+      setError("That file isn't an image.");
+      return;
+    }
+    setError("");
+    setFile(picked);
   };
 
   const api = async (method: "PUT" | "DELETE", body?: object) => {
@@ -149,24 +167,53 @@ export default function ImageEditButton({
         createPortal(
           <EditModal isOpen onClose={closeModal} title={`${noun === "logo" ? "Logo" : "Photo"}: ${title}`}>
             <form onSubmit={handleSave} className={styles.form}>
-              <div className={`${styles.preview} ${noun === "logo" ? styles.logoPreview : ""}`}>
+              {/* The whole preview is the picker: one big tap target on phones, drop zone on desktop */}
+              <label
+                className={`${styles.picker} ${noun === "logo" ? styles.logoPreview : ""} ${
+                  dragging ? styles.dragging : ""
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  chooseFile(e.dataTransfer.files?.[0]);
+                }}
+              >
+                <input
+                  type="file"
+                  accept={accept}
+                  className="visually-hidden"
+                  onChange={(e) => {
+                    chooseFile(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                  disabled={busy}
+                />
                 {currentSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={currentSrc} alt="" />
                 ) : (
-                  <span>No {noun} yet</span>
+                  <span className={styles.pickerEmpty}>
+                    <CameraIcon />
+                    <strong>Tap to take or choose a {noun}</strong>
+                    <span className={styles.desktopOnly}>or drag one here</span>
+                  </span>
                 )}
-              </div>
-
-              <label className={styles.field}>
-                <span>{current ? `Replace with a new ${noun}` : `Choose a ${noun}`}</span>
-                <input
-                  type="file"
-                  accept={accept}
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  disabled={busy}
-                />
+                {currentSrc && (
+                  <span className={styles.pickerChange}>
+                    <CameraIcon /> {file ? `Choose a different ${noun}` : `Replace ${noun}`}
+                  </span>
+                )}
               </label>
+              {file && (
+                <p className={styles.fileInfo}>
+                  {file.name} · {(file.size / 1024 / 1024).toFixed(1)}MB, will be optimised before upload
+                </p>
+              )}
 
               {showAlt && (
                 <label className={styles.field}>
