@@ -8,6 +8,13 @@ service firebase.storage {
         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Sewing machine photos - publicly readable, admin-only upload
+    match /sewingMachines/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     // Everything else is denied by default
     match /{allPaths=**} {
       allow read, write: if false;

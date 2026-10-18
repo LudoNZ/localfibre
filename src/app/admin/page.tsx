@@ -7,6 +7,7 @@ import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import styles from "./Admin.module.css";
 import EditModal from "@/components/ui/EditModal";
+import MachinesPanel from "./MachinesPanel";
 import {
   APPLICATION_STATUSES,
   ApplicationStatus,
@@ -70,16 +71,18 @@ interface SewingApplication {
   phone: string;
   area: string;
   status: ApplicationStatus;
+  machineNumber?: number;
   createdAt: string | null;
 }
 
-type Tab = "users" | "events" | "patterns" | "sewing" | "messages" | "newsletter";
+type Tab = "users" | "events" | "patterns" | "machines" | "sewing" | "messages" | "newsletter";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "events", label: "Events" },
   { id: "patterns", label: "Patterns" },
-  { id: "sewing", label: "Sewing Machines" },
+  { id: "machines", label: "Machines" },
+  { id: "sewing", label: "Waiting List" },
   { id: "messages", label: "Messages" },
   { id: "newsletter", label: "Newsletter" },
 ];
@@ -1264,6 +1267,8 @@ export default function AdminPage() {
         </div>
       )}
 
+      {activeTab === "machines" && <MachinesPanel user={user} />}
+
       {activeTab === "sewing" && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
@@ -1326,6 +1331,9 @@ export default function AdminPage() {
                         <a href={`mailto:${app.email}`}>{app.email}</a>
                         <a href={`tel:${app.phone.replace(/[^\d+]/g, "")}`}>{app.phone}</a>
                       </p>
+                      {app.machineNumber && (
+                        <p className={styles.eventMeta}>Assigned machine #{app.machineNumber}</p>
+                      )}
                       <p className={styles.messageDate}>Applied {formatShortDate(app.createdAt)}</p>
                     </div>
                     <div className={styles.applicationStatus}>
@@ -1333,6 +1341,8 @@ export default function AdminPage() {
                       <select
                         id={`status-${app.id}`}
                         value={app.status}
+                        disabled={!!app.machineNumber}
+                        title={app.machineNumber ? "Managed from the Machines tab" : undefined}
                         onChange={(e) =>
                           handleUpdateApplicationStatus(app.id, e.target.value as ApplicationStatus)
                         }

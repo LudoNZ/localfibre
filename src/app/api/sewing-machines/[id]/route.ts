@@ -18,7 +18,18 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
 
-    await db.collection("sewingMachineApplications").doc(id).update({
+    const appRef = db.collection("sewingMachineApplications").doc(id)
+    const app = await appRef.get()
+
+    // Applicants paired with a machine are managed from the Machines tab
+    if (app.data()?.machineId) {
+      return NextResponse.json(
+        { error: "This person has a machine assigned. Update it from the Machines tab instead." },
+        { status: 400 }
+      )
+    }
+
+    await appRef.update({
       status,
       updatedAt: FieldValue.serverTimestamp(),
     })
