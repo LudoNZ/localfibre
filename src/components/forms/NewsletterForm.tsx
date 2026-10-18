@@ -29,11 +29,11 @@ export default function NewsletterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form} id="newsletter">
-      <div className={styles.inputGroup}>
-        <label htmlFor="newsletter-email" className={styles.label}>
-          Email address
-        </label>
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <label htmlFor="newsletter-email" className={styles.label}>
+        Email address
+      </label>
+      <div className={styles.row}>
         <input
           type="email"
           id="newsletter-email"
@@ -44,19 +44,19 @@ export default function NewsletterForm() {
           className={styles.input}
           disabled={status === "loading"}
         />
+        <button
+          type="submit"
+          className={`btn-primary ${styles.button}`}
+          disabled={status === "loading" || status === "success"}
+        >
+          {status === "loading" ? "Subscribing..." : status === "success" ? "Subscribed!" : "Subscribe"}
+        </button>
       </div>
-      <button
-        type="submit"
-        className={`btn-primary ${styles.button}`}
-        disabled={status === "loading" || status === "success"}
-      >
-        {status === "loading" ? "Subscribing..." : status === "success" ? "Subscribed!" : "Subscribe"}
-      </button>
       {status === "success" && (
-        <p className={styles.success}>Thank you for subscribing!</p>
+        <p className={styles.success} role="status">Thank you for subscribing!</p>
       )}
       {status === "error" && (
-        <p className={styles.error}>Something went wrong. Please try again.</p>
+        <p className={styles.error} role="alert">Something went wrong. Please try again.</p>
       )}
     </form>
   );

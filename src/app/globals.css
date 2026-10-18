@@ -1,21 +1,35 @@
-/* Local Fibre Brand Styles */
+/* Local Fibre brand styles – "retro bold" */
 
 :root {
-  /* Brand Colors */
-  --color-heading: #7f340b;
+  /* Retro palette */
+  --rust: #7f340b;
+  --rust-deep: #5e2508;
+  --tan: #d9935a;
+  --mustard: #e0a526;
+  --olive: #5f6b2d;
+  --cream: #f9f2e6;
+  --sand: #f2e6d2;
+  --ink: #2b1407;
+
+  /* Semantic colours (used across the site and admin) */
+  --color-heading: var(--rust);
   --color-body: #411f0a;
   --color-accent-cream: #f5f0e8;
   --color-accent-green: #6b8e5a;
   --color-accent-moss: #8b9568;
   --color-accent-clay: #c4a484;
-  --color-background: #f9f2e6ff;
-  --color-background-soft: #f2e6d2;
+  --color-background: var(--cream);
+  --color-background-soft: var(--sand);
 
-  /* Typography */
-  --font-heading: "Cream Wish", "Inter", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", sans-serif;
+  /* Typography (font variables are set by next/font in layout.tsx) */
+  --font-heading: var(--font-display), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+
+  /* Retro "sticker" shadows */
+  --shadow-sticker: 4px 4px 0 var(--ink);
+  --shadow-sticker-sm: 3px 3px 0 var(--ink);
+  --radius-card: 20px;
 
   /* Spacing */
   --spacing-xs: 0.5rem;
@@ -23,21 +37,7 @@
   --spacing-md: 2rem;
   --spacing-lg: 3rem;
   --spacing-xl: 4rem;
-
-  /* Breakpoints */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-}
-
-@font-face {
-  font-family: "Cream Wish";
-  src: url("/fonts/cream_wish/Cream Wish/Cream Wish.otf") format("opentype"),
-    url("/fonts/cream_wish/Cream Wish/Cream Wish.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+  --section-padding: clamp(4rem, 9vw, 7rem);
 }
 
 html,
@@ -47,8 +47,15 @@ body {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+}
+
 main {
-  padding-top: 70px;
+  padding-top: 76px;
 }
 
 body {
@@ -84,26 +91,31 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
+  font-variation-settings: "SOFT" 100, "WONK" 1;
   color: var(--color-heading);
-  font-weight: normal;
-  line-height: 1.2;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
   margin-bottom: var(--spacing-sm);
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
 h2 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  letter-spacing: -0.025em;
 }
 
 h3 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.35rem, 2.4vw, 1.65rem);
 }
 
 h4 {
-  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-size: clamp(1.15rem, 2vw, 1.3rem);
 }
 
 p {
@@ -113,53 +125,87 @@ p {
 
 /* Accessibility */
 :focus-visible {
-  outline: 2px solid var(--color-heading);
-  outline-offset: 2px;
+  outline: 3px solid var(--mustard);
+  outline-offset: 3px;
 }
 
-/* Button styles */
+/* ── Buttons ─────────────────────────────────────────── */
 button,
 .btn,
 button.btn,
 a.btn,
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-accent {
   font-family: var(--font-body);
   font-size: 1rem;
   padding: 0.875rem 2rem;
   border: none;
-  border-radius: 12px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, color 0.2s ease;
   text-align: center;
   display: inline-block;
-  font-weight: 500;
+  font-weight: 600;
   min-height: 44px; /* Accessibility: minimum touch target size */
   box-sizing: border-box;
 }
 
-.btn-primary {
-  background-color: var(--color-heading);
-  color: white;
+.btn-primary,
+.btn-secondary,
+.btn-accent {
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-sticker-sm);
 }
 
-.btn-primary:hover {
-  background-color: var(--color-body);
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-accent:hover {
   opacity: 1;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.btn-accent:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-accent:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sticker-sm);
+}
+
+.btn-primary {
+  background-color: var(--rust);
+  color: var(--cream);
 }
 
 .btn-secondary {
-  background-color: var(--color-accent-cream);
-  color: var(--color-body);
-  border: 1px solid var(--color-accent-clay);
+  background-color: var(--cream);
+  color: var(--ink);
 }
 
-.btn-secondary:hover {
-  background-color: var(--color-accent-clay);
-  color: white;
+.btn-accent {
+  background-color: var(--mustard);
+  color: var(--ink);
 }
 
-/* Container */
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent {
+    transition: none;
+  }
+}
+
+/* ── Layout helpers ──────────────────────────────────── */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -172,9 +218,40 @@ a.btn,
   }
 }
 
+/* Small uppercase label above a section heading */
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.85rem;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Retro card: ink outline + offset shadow */
+.card-retro {
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sticker);
+}
+
 /* Decorative elements */
 .stitched-line {
   border-top: 2px dashed var(--color-accent-clay);
   margin: var(--spacing-md) 0;
   opacity: 0.3;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

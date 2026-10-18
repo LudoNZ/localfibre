@@ -35,15 +35,16 @@ export default function CountdownTimer({ targetDate }: CountdownTimerProps) {
       };
     };
 
-    // Calculate immediately
-    setTimeLeft(calculateTimeLeft());
+    const tick = () => setTimeLeft(calculateTimeLeft());
 
-    // Update every second
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
+    // Calculate straight away, then update every second
+    const first = setTimeout(tick, 0);
+    const timer = setInterval(tick, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
   }, [targetDate]);
 
   if (!timeLeft) {

@@ -1,66 +1,99 @@
 .footer {
-  background-color: var(--color-background-soft);
-  border-top: 1px solid var(--color-accent-cream);
+  background-color: var(--ink);
+  color: var(--cream);
   padding: var(--spacing-xl) 0 var(--spacing-md);
-  margin-top: var(--spacing-xl);
 }
 
 .footerContent {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1.6fr 1fr 1fr;
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
 }
 
-.footerSection h4 {
-  margin-bottom: var(--spacing-sm);
-  font-size: 1.1rem;
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
 }
 
-.footerText {
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.6;
+.logoBadge {
+  display: inline-flex;
+  padding: 0.6rem 1rem;
+  background: var(--cream);
+  border: 2px solid var(--cream);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--mustard);
+}
+
+.logoBadge:hover {
+  opacity: 1;
+}
+
+.tagline {
+  max-width: 340px;
+  margin: 0;
+  color: var(--cream);
+  opacity: 0.85;
 }
 
 .email {
-  margin-top: var(--spacing-sm);
+  color: var(--mustard);
+  font-weight: 600;
 }
 
-.email a {
-  color: var(--color-heading);
+.heading {
+  font-family: var(--font-body);
+  font-variation-settings: normal;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mustard);
+  margin-bottom: var(--spacing-sm);
 }
 
-.socialLinks,
-.footerLinks {
+.links {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.6rem;
 }
 
-.socialLinks a,
-.footerLinks a {
-  color: var(--color-body);
-  transition: color 0.2s ease;
+.links a {
+  color: var(--cream);
+  font-weight: 500;
 }
 
-.socialLinks a:hover,
-.footerLinks a:hover {
-  color: var(--color-heading);
+.links a:hover {
+  color: var(--mustard);
+  opacity: 1;
 }
 
 .footerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacing-xs) var(--spacing-md);
   padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-accent-cream);
-  text-align: center;
-  color: var(--color-body);
-  font-size: 0.9rem;
+  border-top: 1px solid rgba(249, 242, 230, 0.2);
+  font-size: 0.875rem;
+  color: var(--cream);
+  opacity: 0.75;
+}
+
+.footerBottom p {
+  margin: 0;
 }
 
 @media (max-width: 768px) {
   .footerContent {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: var(--spacing-md);
   }
-}
 
+  .brand {
+    grid-column: 1 / -1;
+  }
+}

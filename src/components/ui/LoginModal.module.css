@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(43, 20, 7, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,12 +11,13 @@
 
 .modal {
   background-color: var(--color-background);
-  border-radius: 16px;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
   padding: var(--spacing-lg);
   width: 100%;
   max-width: 400px;
   position: relative;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 6px 6px 0 var(--ink);
 }
 
 .closeButton {
@@ -59,27 +60,27 @@
 }
 
 .label {
-  font-weight: 500;
-  color: var(--color-body);
+  font-weight: 600;
+  color: var(--ink);
   font-size: 0.95rem;
 }
 
 .input {
   padding: 0.875rem 1.125rem;
-  border: 1px solid var(--color-accent-clay);
-  border-radius: 10px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
   font-size: 1rem;
   font-family: var(--font-body);
-  background-color: var(--color-background);
-  color: var(--color-body);
+  background-color: #fffaf2;
+  color: var(--ink);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--color-heading);
-  box-shadow: 0 0 0 3px rgba(127, 52, 11, 0.1);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--mustard);
 }
 
 .input:disabled {

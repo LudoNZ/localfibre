@@ -10,9 +10,9 @@
   padding: var(--spacing-sm);
   padding-right: 2.75rem;
   background: var(--color-background);
-  border: 1px solid var(--color-accent-clay);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(65, 31, 10, 0.18);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: 5px 5px 0 var(--ink);
   animation: slideUp 0.3s ease-out;
 }
 

@@ -4,9 +4,10 @@
   justify-content: center;
   gap: 0.5rem;
   margin-top: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  background-color: rgba(127, 52, 11, 0.05);
-  border-radius: 8px;
+  padding: 0.75rem var(--spacing-sm);
+  background-color: var(--ink);
+  color: var(--cream);
+  border-radius: 14px;
 }
 
 .countdownItem {
@@ -18,15 +19,17 @@
 
 .countdownValue {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-heading);
+  font-weight: 900;
+  color: var(--mustard);
   font-family: var(--font-heading);
+  font-variation-settings: "SOFT" 100, "WONK" 1;
   line-height: 1;
 }
 
 .countdownLabel {
-  font-size: 0.75rem;
-  color: var(--color-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--cream);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 0.25rem;
@@ -35,7 +38,7 @@
 .countdownSeparator {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-heading);
+  color: var(--mustard);
   margin: 0 0.25rem;
 }
 

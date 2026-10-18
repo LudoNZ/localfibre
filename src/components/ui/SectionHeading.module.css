@@ -1,0 +1,45 @@
+.heading {
+  margin-bottom: var(--spacing-lg);
+  max-width: 760px;
+}
+
+.center {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.left {
+  text-align: left;
+}
+
+.title {
+  margin-bottom: 0.75rem;
+}
+
+.intro {
+  font-size: clamp(1.05rem, 1.8vw, 1.2rem);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.light .eyebrow {
+  color: var(--rust);
+}
+
+.light .title {
+  color: var(--rust);
+}
+
+.light .intro {
+  color: var(--color-body);
+}
+
+.dark .eyebrow {
+  color: var(--mustard);
+}
+
+.dark .title,
+.dark .intro {
+  color: var(--cream);
+}

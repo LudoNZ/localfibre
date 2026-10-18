@@ -1,0 +1,81 @@
+.frame {
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sticker);
+  padding: 10px;
+  margin: 0;
+}
+
+.left {
+  transform: rotate(-2.5deg);
+}
+
+.right {
+  transform: rotate(2deg);
+}
+
+.none {
+  transform: none;
+}
+
+.media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--sand);
+}
+
+.landscape {
+  aspect-ratio: 4 / 3;
+}
+
+.portrait {
+  aspect-ratio: 4 / 5;
+}
+
+.square {
+  aspect-ratio: 1;
+}
+
+.image {
+  object-fit: cover;
+}
+
+/* Gingham fabric texture used until a real photo is added */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--sand);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(217, 147, 90, 0.35) 0 14px, transparent 14px 28px),
+    repeating-linear-gradient(90deg, rgba(217, 147, 90, 0.35) 0 14px, transparent 14px 28px);
+}
+
+.placeholderIcon {
+  fill: none;
+  stroke: var(--rust);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  padding: 14%;
+  box-sizing: content-box;
+  aspect-ratio: 1;
+  width: 22%;
+  max-width: 96px;
+}
+
+.caption {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0.6rem 0.25rem 0.1rem;
+  line-height: 1.4;
+}

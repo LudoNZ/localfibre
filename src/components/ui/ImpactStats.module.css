@@ -1,0 +1,60 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 280px));
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: var(--spacing-md) var(--spacing-sm);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sticker);
+  text-align: center;
+}
+
+.value {
+  font-family: var(--font-heading);
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+  font-weight: 900;
+  font-size: clamp(2.75rem, 6vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.light .stat {
+  background: var(--cream);
+}
+
+.light .value {
+  color: var(--rust);
+}
+
+.light .label {
+  color: var(--ink);
+}
+
+.dark .stat {
+  background: var(--rust-deep);
+  border-color: var(--ink);
+}
+
+.dark .value {
+  color: var(--mustard);
+}
+
+.dark .label {
+  color: var(--cream);
+}

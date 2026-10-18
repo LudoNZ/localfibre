@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import styles from "./page.module.css"
+import WaveDivider from "@/components/ui/WaveDivider"
 import SewingMachineForm from "@/components/forms/SewingMachineForm"
 
 export const metadata: Metadata = {
-  title: "Sewing Machines | Local Fibre",
+  title: "Apply for a Sewing Machine | Local Fibre",
   description:
     "Apply for a sewing machine from Local Fibre. Open to individuals and community groups, with pickup in West Auckland.",
 }
@@ -13,11 +15,15 @@ export default function SewingMachinesPage() {
     <div className={styles.page}>
       <section className={styles.hero}>
         <div className="container">
-          <h1>Sewing Machines</h1>
+          <span className="eyebrow">Repair Programme</span>
+          <h1>Apply for a sewing machine</h1>
           <p className={styles.tagline}>
             Local Fibre helps get sewing machines into the hands of people and
             community groups who will put them to good use.
           </p>
+          <Link href="/repair-programme" className={styles.programmeLink}>
+            How the programme works →
+          </Link>
         </div>
       </section>
 
@@ -48,6 +54,8 @@ export default function SewingMachinesPage() {
           </div>
         </div>
       </section>
+
+      <WaveDivider from="var(--cream)" to="var(--sand)" />
 
       <section className={styles.formSection}>
         <div className="container">

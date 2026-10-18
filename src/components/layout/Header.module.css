@@ -3,19 +3,28 @@
   top: 0;
   left: 0;
   width: 100%;
-  background-color: rgba(249, 242, 230, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(196, 164, 132, 0.2);
+  border-bottom: 2px solid var(--ink);
   z-index: 1000;
+}
+
+/* The blur lives on a pseudo-element: backdrop-filter on the header itself
+   would trap the fixed-position phone menu inside the header's box */
+.header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: rgba(249, 242, 230, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.875rem 0;
-  min-height: 70px;
+  gap: var(--spacing-sm);
+  min-height: 74px;
 }
 
 .logo {
@@ -28,54 +37,49 @@
   display: flex;
   list-style: none;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.15rem;
   margin: 0;
   padding: 0;
 }
 
-.navList li {
-  margin: 0;
-}
-
 .navLink {
   display: inline-block;
-  padding: 0.5rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--color-body);
-  border-radius: 6px;
-  transition: color 0.2s ease, background-color 0.2s ease;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+  transition: text-decoration-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
-.navLink:hover {
-  color: var(--color-heading);
-  background-color: rgba(196, 164, 132, 0.15);
+.navLink:hover,
+.active {
+  color: var(--rust);
+  text-decoration-color: var(--mustard);
+  text-decoration-style: wavy;
   opacity: 1;
 }
 
-.newsletterBtn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-heading);
-  border: 1px solid var(--color-accent-clay);
-  border-radius: 6px;
-  background-color: transparent;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  letter-spacing: 0.01em;
-  margin-left: 0.5rem;
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.newsletterBtn:hover {
-  background-color: var(--color-heading);
-  color: white;
-  opacity: 1;
+.ctaButton {
+  padding: 0.55rem 1.2rem;
+  font-size: 0.92rem;
+  min-height: 40px;
+  white-space: nowrap;
 }
 
-.authItem {
-  margin-left: 0.25rem;
+.desktopAuth {
+  display: flex;
+  align-items: center;
 }
 
 .loginButton {
@@ -83,17 +87,18 @@
   border: none;
   font-family: var(--font-body);
   font-size: 0.875rem;
-  color: var(--color-accent-clay);
+  font-weight: 500;
+  color: var(--color-body);
   cursor: pointer;
   padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 999px;
   transition: color 0.2s ease, background-color 0.2s ease;
-  letter-spacing: 0.01em;
+  min-height: 40px;
 }
 
 .loginButton:hover {
-  color: var(--color-heading);
-  background-color: rgba(196, 164, 132, 0.15);
+  color: var(--rust);
+  background-color: rgba(196, 164, 132, 0.2);
 }
 
 .authButtons {
@@ -106,46 +111,83 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem;
-  color: var(--color-accent-clay);
-  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  color: var(--color-body);
+  border-radius: 50%;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .adminLink:hover {
-  color: var(--color-heading);
-  background-color: rgba(196, 164, 132, 0.15);
+  color: var(--rust);
+  background-color: rgba(196, 164, 132, 0.2);
   opacity: 1;
 }
 
 /* ── Mobile ─────────────────────────────────────────── */
 .menuButton {
   display: none;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  color: var(--color-heading);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  min-height: 46px;
+  padding: 0;
+  box-shadow: var(--shadow-sticker-sm);
 }
 
-.menuButton:hover {
-  background-color: rgba(196, 164, 132, 0.15);
-}
-
-.menuIcon {
+.burger {
+  position: relative;
   display: block;
-  line-height: 1;
+  width: 20px;
+  height: 14px;
+  margin: 0 auto;
 }
 
-.mobileNavList {
+.burger span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: transform 0.2s ease, opacity 0.2s ease, top 0.2s ease;
+}
+
+.burger span:nth-child(1) {
+  top: 0;
+}
+
+.burger span:nth-child(2) {
+  top: 6px;
+}
+
+.burger span:nth-child(3) {
+  top: 12px;
+}
+
+.burgerOpen span:nth-child(1) {
+  top: 6px;
+  transform: rotate(45deg);
+}
+
+.burgerOpen span:nth-child(2) {
+  opacity: 0;
+}
+
+.burgerOpen span:nth-child(3) {
+  top: 6px;
+  transform: rotate(-45deg);
+}
+
+.mobilePanel {
   display: none;
 }
 
-@media (max-width: 768px) {
-  .navList {
+@media (max-width: 1080px) {
+  .navList,
+  .desktopAuth {
     display: none;
   }
 
@@ -153,41 +195,55 @@
     display: block;
   }
 
-  .mobileNavList {
+  .mobilePanel {
+    position: fixed;
+    top: 76px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
-    list-style: none;
-    gap: 0.25rem;
-    padding: 0.75rem 0 1rem;
-    border-top: 1px solid rgba(196, 164, 132, 0.2);
-    margin-top: 0;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-sm) calc(var(--spacing-md) + env(safe-area-inset-bottom));
+    background: var(--cream);
+    overflow-y: auto;
   }
 
-  .mobileNavList li {
-    margin: 0;
+  .mobileNavList {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
   }
 
   .mobileNavLink {
     display: block;
-    padding: 0.75rem var(--spacing-sm);
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-body);
-    border-radius: 6px;
-    transition: color 0.2s ease, background-color 0.2s ease;
+    padding: 0.85rem 0;
+    font-family: var(--font-heading);
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    font-weight: 800;
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    color: var(--rust);
+    border-bottom: 2px dashed rgba(43, 20, 7, 0.2);
   }
 
-  .mobileNavLink:hover {
-    color: var(--color-heading);
-    background-color: rgba(196, 164, 132, 0.15);
-    opacity: 1;
+  .mobileNavLink[aria-current="page"] {
+    color: var(--ink);
   }
 
-  .mobileNavList .loginButton {
-    display: block;
+  .mobileCta {
     width: 100%;
-    text-align: left;
-    padding: 0.75rem var(--spacing-sm);
-    font-size: 1rem;
+  }
+
+  .mobileAuth {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  /* The phone menu has its own CTA; keep the bar uncluttered */
+  .ctaButton {
+    display: none;
   }
 }

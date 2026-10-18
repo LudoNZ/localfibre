@@ -1,57 +1,73 @@
+import Image from "next/image";
+import Link from "next/link";
 import styles from "./Footer.module.css";
+import { site } from "@/data/site";
+
+const exploreLinks = [
+  { label: "About", href: "/about" },
+  { label: "Repair Programme", href: "/repair-programme" },
+  { label: "Apply for a machine", href: "/sewing-machines" },
+  { label: "Events", href: "/#events" },
+  { label: "Free patterns", href: "/#patterns" },
+];
+
+const connectLinks = [
+  { label: "Newsletter", href: "/#newsletter" },
+  { label: "Contact us", href: "/#contact" },
+];
 
 export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className="container">
         <div className={styles.footerContent}>
-          <div className={styles.footerSection}>
-            <p className={styles.footerText}>
-              Community sewing &amp; zero-waste textiles, Aotearoa
-            </p>
-            <p className={styles.email}>
-              <a href="mailto:hello@localfibre.co.nz">hello@localfibre.co.nz</a>
-            </p>
+          <div className={styles.brand}>
+            <Link href="/" className={styles.logoBadge} aria-label="Local Fibre home">
+              <Image
+                src="/images/LFLogo-Horizontal.png"
+                alt="Local Fibre"
+                width={180}
+                height={66}
+                style={{ height: "auto", width: "100%", maxWidth: "170px" }}
+              />
+            </Link>
+            <p className={styles.tagline}>{site.tagline}</p>
+            <a href={`mailto:${site.email}`} className={styles.email}>
+              {site.email}
+            </a>
           </div>
 
-          <div className={styles.footerSection}>
-            <h4>Connect</h4>
-            <ul className={styles.socialLinks}>
-              <li>
-                <a
-                  href="https://www.instagram.com/localfibre/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://humanitix.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Humanitix
-                </a>
-              </li>
+          <div className={styles.column}>
+            <h2 className={styles.heading}>Explore</h2>
+            <ul className={styles.links}>
+              {exploreLinks.map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href}>{label}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          <div className={styles.footerSection}>
-            <h4>Quick Links</h4>
-            <ul className={styles.footerLinks}>
-              <li><a href="/#about">About</a></li>
-              <li><a href="/#events">Events</a></li>
-              <li><a href="/#patterns">Patterns</a></li>
-              <li><a href="/#newsletter">Newsletter</a></li>
-              <li><a href="/#contact">Contact</a></li>
+          <div className={styles.column}>
+            <h2 className={styles.heading}>Connect</h2>
+            <ul className={styles.links}>
+              {connectLinks.map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href}>{label}</Link>
+                </li>
+              ))}
+              <li>
+                <a href={site.instagram} target="_blank" rel="noopener noreferrer">
+                  Instagram {site.instagramHandle}
+                </a>
+              </li>
             </ul>
           </div>
         </div>
 
         <div className={styles.footerBottom}>
-          <p>&copy; {new Date().getFullYear()} Local Fibre. All rights reserved.</p>
+          <p>{site.orgStatus}</p>
+          <p>&copy; {new Date().getFullYear()} Local Fibre</p>
         </div>
       </div>
     </footer>
