@@ -1,6 +1,7 @@
 // Partners and supporters shown on the home and About pages.
-// Add a logo by saving it in /public/images/partners/ and setting `logo`.
-// `role` (e.g. "Funder", "Event venue") and `url` are optional.
+// Logos are easiest to add with the "Add logo" button admins see on each badge;
+// a path in `logo` (under /public) is used if nothing has been uploaded.
+// `role` (e.g. "Funder") and `url` are optional.
 
 export interface Partner {
   name: string
@@ -18,9 +19,22 @@ export const partners: Partner[] = [
 ]
 
 // Organisations that have received sewing machines through the Repair Programme
-export const machineRecipients: { name: string; url?: string }[] = [
+export const machineRecipients: Partner[] = [
   { name: "Ethnic Women's Trust" },
   { name: "Pacific Vision Aotearoa" },
   { name: "New Windsor Community Hub" },
   { name: "Social Links" },
 ]
+
+/** Stable id for an organisation, used to store its uploaded logo */
+export const orgSlug = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // strip macrons etc.
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+
+/** Every organisation that can have a logo uploaded from the site */
+export const isKnownOrgSlug = (slug: string) =>
+  [...partners, ...machineRecipients].some((org) => orgSlug(org.name) === slug)

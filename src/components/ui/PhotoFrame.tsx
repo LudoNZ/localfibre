@@ -1,6 +1,6 @@
 import styles from "./PhotoFrame.module.css";
-import PhotoEditButton from "./PhotoEditButton";
-import type { PhotoSlot, SitePhoto } from "@/lib/sitePhotoSlots";
+import ImageEditButton from "./ImageEditButton";
+import { PHOTO_SLOTS, PHOTO_WIDTHS, type PhotoSlot, type SitePhoto } from "@/lib/sitePhotoSlots";
 
 interface PhotoFrameProps {
   /** When missing, a fabric-texture placeholder is shown */
@@ -58,7 +58,18 @@ export default function PhotoFrame({
             </svg>
           </div>
         )}
-        {slot && <PhotoEditButton slot={slot} photo={photo ?? null} />}
+        {slot && (
+          <ImageEditButton
+            endpoint={`/api/site-photos/${slot}`}
+            folder={`sitePhotos/${slot}`}
+            title={PHOTO_SLOTS[slot]}
+            current={photo ?? null}
+            options={{ widths: PHOTO_WIDTHS }}
+            showAlt
+            hint="Large photos are fine: they're resized automatically so phones load a small version and big screens get a sharp one."
+            className={styles.editButton}
+          />
+        )}
       </div>
       {photo && caption && <figcaption className={styles.caption}>{caption}</figcaption>}
     </figure>

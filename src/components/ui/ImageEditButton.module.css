@@ -1,8 +1,4 @@
 .editButton {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -120,4 +116,15 @@
   padding: 0.6rem 0.5rem;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* Logos sit on a light background and are never cropped */
+.logoPreview {
+  aspect-ratio: 5 / 2;
+  background: #fff;
+  padding: var(--spacing-sm);
+}
+
+.logoPreview img {
+  object-fit: contain;
 }
