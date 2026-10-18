@@ -106,7 +106,7 @@ export default function SewingMachineForm() {
               checked={formData.applicantType === "communityGroup"}
               onChange={handleChange}
             />
-            A community group
+            A community group or organisation
           </label>
         </div>
       </fieldset>
@@ -114,12 +114,14 @@ export default function SewingMachineForm() {
       {formData.applicantType === "communityGroup" && (
         <div className={styles.formGroup}>
           <label htmlFor="groupName" className={styles.label}>
-            Community group name *
+            Organisation name *
           </label>
           <input
             type="text"
             id="groupName"
             name="groupName"
+            pattern=".*\S.*"
+            title="Please enter your organisation's name"
             value={formData.groupName}
             onChange={handleChange}
             required
@@ -137,6 +139,8 @@ export default function SewingMachineForm() {
           type="text"
           id="fullName"
           name="fullName"
+          pattern=".*\S.*"
+          title="Please enter your full name"
           autoComplete="name"
           value={formData.fullName}
           onChange={handleChange}

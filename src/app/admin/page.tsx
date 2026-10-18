@@ -7,6 +7,12 @@ import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import styles from "./Admin.module.css";
 import EditModal from "@/components/ui/EditModal";
+import {
+  APPLICATION_STATUSES,
+  ApplicationStatus,
+  OPEN_STATUSES,
+  STATUS_LABELS,
+} from "@/lib/sewingMachines";
 
 interface User {
   uid: string;
@@ -55,7 +61,39 @@ interface Subscriber {
   createdAt: string | null;
 }
 
-type Tab = "users" | "events" | "patterns" | "messages" | "newsletter";
+interface SewingApplication {
+  id: string;
+  applicantType: "individual" | "communityGroup";
+  groupName: string | null;
+  fullName: string;
+  email: string;
+  phone: string;
+  area: string;
+  status: ApplicationStatus;
+  createdAt: string | null;
+}
+
+type Tab = "users" | "events" | "patterns" | "sewing" | "messages" | "newsletter";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "users", label: "Users" },
+  { id: "events", label: "Events" },
+  { id: "patterns", label: "Patterns" },
+  { id: "sewing", label: "Sewing Machines" },
+  { id: "messages", label: "Messages" },
+  { id: "newsletter", label: "Newsletter" },
+];
+
+type SewingFilter = "open" | "done" | "all";
+
+const formatShortDate = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "-";
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
@@ -67,6 +105,8 @@ export default function AdminPage() {
   const [patterns, setPatterns] = useState<Pattern[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [applications, setApplications] = useState<SewingApplication[]>([]);
+  const [sewingFilter, setSewingFilter] = useState<SewingFilter>("open");
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
 
@@ -211,7 +251,10 @@ export default function AdminPage() {
     setError("");
     try {
       if (activeTab === "users") {
-        const res = await fetch("/api/users");
+        const token = await user?.getIdToken();
+        const res = await fetch("/api/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setUsers(data.users || []);
@@ -235,6 +278,14 @@ export default function AdminPage() {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setMessages(data.messages || []);
+      } else if (activeTab === "sewing") {
+        const token = await user?.getIdToken();
+        const res = await fetch("/api/sewing-machines", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setApplications(data.applications || []);
       } else if (activeTab === "newsletter") {
         const res = await fetch("/api/newsletter");
         const data = await res.json();
@@ -252,9 +303,13 @@ export default function AdminPage() {
     e.preventDefault();
     setError("");
     try {
+      const token = await user?.getIdToken();
       const res = await fetch("/api/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(userForm),
       });
       const data = await res.json();
@@ -284,6 +339,28 @@ export default function AdminPage() {
       fetchData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update role");
+    }
+  };
+
+  const handleUpdateApplicationStatus = async (id: string, status: ApplicationStatus) => {
+    setError("");
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch(`/api/sewing-machines/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setApplications((apps) =>
+        apps.map((app) => (app.id === id ? { ...app, status } : app))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update application");
     }
   };
 
@@ -482,41 +559,33 @@ export default function AdminPage() {
     return null;
   }
 
+  // Queue numbers follow application order among applications still in the queue
+  const openApplications = applications.filter((app) => OPEN_STATUSES.includes(app.status));
+  const queueNumbers = new Map(openApplications.map((app, i) => [app.id, i + 1]));
+  const visibleApplications = applications.filter((app) =>
+    sewingFilter === "all"
+      ? true
+      : sewingFilter === "open"
+        ? queueNumbers.has(app.id)
+        : !queueNumbers.has(app.id)
+  );
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Admin Dashboard</h1>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === "users" ? styles.activeTab : ""}`}
-          onClick={() => setActiveTab("users")}
-        >
-          Users
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === "events" ? styles.activeTab : ""}`}
-          onClick={() => setActiveTab("events")}
-        >
-          Events
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === "patterns" ? styles.activeTab : ""}`}
-          onClick={() => setActiveTab("patterns")}
-        >
-          Patterns
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === "messages" ? styles.activeTab : ""}`}
-          onClick={() => setActiveTab("messages")}
-        >
-          Messages
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === "newsletter" ? styles.activeTab : ""}`}
-          onClick={() => setActiveTab("newsletter")}
-        >
-          Newsletter
-        </button>
+      <div className={styles.tabs} role="tablist">
+        {TABS.map(({ id, label }) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={activeTab === id}
+            className={`${styles.tab} ${activeTab === id ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab(id)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -581,7 +650,7 @@ export default function AdminPage() {
           {loadingData ? (
             <p>Loading users...</p>
           ) : (
-            <table className={styles.table}>
+            <table className={`${styles.table} ${styles.stackedTable}`}>
               <thead>
                 <tr>
                   <th>Email</th>
@@ -593,14 +662,14 @@ export default function AdminPage() {
               <tbody>
                 {users.map((u) => (
                   <tr key={u.uid}>
-                    <td>{u.email}</td>
-                    <td>{u.displayName || "-"}</td>
-                    <td>
+                    <td data-label="Email" className={styles.breakable}>{u.email}</td>
+                    <td data-label="Name">{u.displayName || "-"}</td>
+                    <td data-label="Role">
                       <span className={`${styles.badge} ${styles[u.role]}`}>
                         {u.role}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Change role">
                       <select
                         value={u.role}
                         onChange={(e) => handleUpdateRole(u.uid, e.target.value)}
@@ -680,7 +749,6 @@ export default function AdminPage() {
                     />
                   </div>
                 )}
-                <br/>
                 <div className={styles.formGroup}>
                   <label>Start Time (optional)</label>
                   <input
@@ -1048,7 +1116,6 @@ export default function AdminPage() {
                     </div>
                   )}
                 </div>
-                <br/>
                 <div className={styles.formGroup}>
                   <label>Pattern PDF</label>
                   <input
@@ -1197,6 +1264,94 @@ export default function AdminPage() {
         </div>
       )}
 
+      {activeTab === "sewing" && (
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Sewing Machine Waiting List</h2>
+            <span className={styles.subscriberCount}>
+              {openApplications.length} in queue
+            </span>
+          </div>
+
+          <div className={styles.filterGroup} role="group" aria-label="Filter applications">
+            {(
+              [
+                ["open", `In queue (${openApplications.length})`],
+                ["done", `Done (${applications.length - openApplications.length})`],
+                ["all", `All (${applications.length})`],
+              ] as [SewingFilter, string][]
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                className={`${styles.filterChip} ${sewingFilter === value ? styles.filterChipActive : ""}`}
+                aria-pressed={sewingFilter === value}
+                onClick={() => setSewingFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {loadingData ? (
+            <p>Loading applications...</p>
+          ) : visibleApplications.length === 0 ? (
+            <p className={styles.empty}>
+              {sewingFilter === "open" ? "Nobody is waiting right now." : "No applications here."}
+            </p>
+          ) : (
+            <div className={styles.applicationsList}>
+              {visibleApplications.map((app) => {
+                const queueNumber = queueNumbers.get(app.id);
+                return (
+                  <div key={app.id} className={styles.applicationCard}>
+                    <div className={styles.queueNumber} aria-label={queueNumber ? `Queue number ${queueNumber}` : "Not in queue"}>
+                      {queueNumber ? `#${queueNumber}` : "–"}
+                    </div>
+                    <div className={styles.applicationInfo}>
+                      <h3>{app.fullName}</h3>
+                      <div className={styles.applicationTags}>
+                        <span className={`${styles.badge} ${styles.past}`}>
+                          {app.applicantType === "communityGroup" ? "Organisation" : "Individual"}
+                        </span>
+                        <span
+                          className={`${styles.badge} ${app.area === "West Auckland" ? styles.upcoming : styles.past}`}
+                        >
+                          {app.area}
+                        </span>
+                      </div>
+                      {app.groupName && (
+                        <p className={styles.eventMeta}>Organisation: {app.groupName}</p>
+                      )}
+                      <p className={styles.applicationContact}>
+                        <a href={`mailto:${app.email}`}>{app.email}</a>
+                        <a href={`tel:${app.phone.replace(/[^\d+]/g, "")}`}>{app.phone}</a>
+                      </p>
+                      <p className={styles.messageDate}>Applied {formatShortDate(app.createdAt)}</p>
+                    </div>
+                    <div className={styles.applicationStatus}>
+                      <label htmlFor={`status-${app.id}`}>Status</label>
+                      <select
+                        id={`status-${app.id}`}
+                        value={app.status}
+                        onChange={(e) =>
+                          handleUpdateApplicationStatus(app.id, e.target.value as ApplicationStatus)
+                        }
+                      >
+                        {APPLICATION_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {STATUS_LABELS[status]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === "messages" && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
@@ -1214,13 +1369,7 @@ export default function AdminPage() {
                     <span className={styles.messageName}>{msg.name}</span>
                     <span className={styles.messageEmail}>{msg.email}</span>
                     {msg.createdAt && (
-                      <span className={styles.messageDate}>
-                        {new Date(msg.createdAt).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
+                      <span className={styles.messageDate}>{formatShortDate(msg.createdAt)}</span>
                     )}
                   </div>
                   <p className={styles.messageBody}>{msg.message}</p>
@@ -1252,16 +1401,8 @@ export default function AdminPage() {
               <tbody>
                 {subscribers.map((sub) => (
                   <tr key={sub.id}>
-                    <td>{sub.email}</td>
-                    <td>
-                      {sub.createdAt
-                        ? new Date(sub.createdAt).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
-                        : "-"}
-                    </td>
+                    <td className={styles.breakable}>{sub.email}</td>
+                    <td className={styles.nowrap}>{formatShortDate(sub.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>

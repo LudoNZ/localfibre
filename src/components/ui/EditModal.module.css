@@ -58,3 +58,29 @@
 .content {
   padding: var(--spacing-lg);
 }
+
+@media (max-width: 768px) {
+  /* Full-width sheet anchored to the bottom on phones */
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .header {
+    padding: var(--spacing-sm);
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .content {
+    padding: var(--spacing-sm);
+  }
+}

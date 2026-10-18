@@ -1,8 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { db } from "@/lib/firebaseAdmin";
+import { requireAdmin } from "@/lib/adminAuth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     // Get all users from Firebase Auth
     const listUsersResult = await admin.auth().listUsers(100);
@@ -32,9 +36,20 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Only admins can create user accounts
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { email, password, displayName, role } = await request.json();
+
+    if (role && !["admin", "general"].includes(role)) {
+      return NextResponse.json(
+        { error: "Invalid role. Must be 'admin' or 'general'" },
+        { status: 400 }
+      );
+    }
 
     if (!email || !password) {
       return NextResponse.json(
