@@ -16,13 +16,6 @@ const navLinks = [
   { label: "Contact", href: "/#contact" },
 ];
 
-const AdminIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="3"></circle>
-    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
-  </svg>
-);
-
 export default function Header() {
   const { user, signOut, isAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -49,18 +42,12 @@ export default function Header() {
   };
 
   const isActive = (href: string) => !href.includes("#") && pathname === href;
+  const onAdmin = pathname.startsWith("/admin");
 
   const authControls = user ? (
-    <div className={styles.authButtons}>
-      <button onClick={handleSignOut} className={styles.loginButton}>
-        Sign out
-      </button>
-      {isAdmin && (
-        <Link href="/admin" className={styles.adminLink} onClick={closeMenu} aria-label="Admin dashboard">
-          <AdminIcon />
-        </Link>
-      )}
-    </div>
+    <button onClick={handleSignOut} className={styles.loginButton}>
+      Sign out
+    </button>
   ) : (
     <button
       onClick={() => {
@@ -104,6 +91,17 @@ export default function Header() {
           </ul>
 
           <div className={styles.navActions}>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`${styles.adminButton} ${onAdmin ? styles.adminButtonActive : ""}`}
+                aria-current={onAdmin ? "page" : undefined}
+                onClick={closeMenu}
+              >
+                <span className={styles.adminDot} aria-hidden="true" />
+                Admin
+              </Link>
+            )}
             <Link href="/sewing-machines" className={`btn-accent ${styles.ctaButton}`}>
               Apply for a machine
             </Link>
@@ -130,6 +128,16 @@ export default function Header() {
       {/* Mobile Navigation */}
       {isMenuOpen && (
         <div id="mobile-menu" className={styles.mobilePanel}>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={styles.mobileAdminLink}
+              onClick={closeMenu}
+              aria-current={onAdmin ? "page" : undefined}
+            >
+              Admin dashboard <span aria-hidden="true">→</span>
+            </Link>
+          )}
           <ul className={styles.mobileNavList}>
             {navLinks.map(({ label, href }) => (
               <li key={href}>

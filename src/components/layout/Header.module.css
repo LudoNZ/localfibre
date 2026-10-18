@@ -101,27 +101,38 @@
   background-color: rgba(196, 164, 132, 0.2);
 }
 
-.authButtons {
-  display: flex;
+/* Admin-only link to the dashboard */
+.adminButton {
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  min-height: 40px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cream);
+  background: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.adminLink {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  color: var(--color-body);
-  border-radius: 50%;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.adminLink:hover {
-  color: var(--rust);
-  background-color: rgba(196, 164, 132, 0.2);
+.adminButton:hover {
   opacity: 1;
+  background: var(--rust);
+}
+
+.adminButtonActive {
+  background: var(--rust);
+  box-shadow: 0 0 0 3px var(--mustard);
+}
+
+.adminDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mustard);
 }
 
 /* ── Mobile ─────────────────────────────────────────── */
@@ -233,6 +244,23 @@
 
   .mobileCta {
     width: 100%;
+  }
+
+  .mobileAdminLink {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.25rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--cream);
+    background: var(--ink);
+    border-radius: 16px;
+  }
+
+  .mobileAdminLink:hover {
+    opacity: 1;
+    background: var(--rust);
   }
 
   .mobileAuth {
