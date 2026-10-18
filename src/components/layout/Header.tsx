@@ -12,6 +12,7 @@ const navLinks = [
   { label: "About", id: "about" },
   { label: "Events", id: "events" },
   { label: "Patterns", id: "patterns" },
+  { label: "Sewing Machines", href: "/sewing-machines" },
   { label: "Contact", id: "contact" },
 ];
 
@@ -67,15 +68,25 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <ul className={styles.navList}>
-            {navLinks.map(({ label, id }) => (
-              <li key={id}>
-                <a
-                  href={`/#${id}`}
-                  className={styles.navLink}
-                  onClick={(e) => handleNavClick(e, id)}
-                >
-                  {label}
-                </a>
+            {navLinks.map(({ label, id, href }) => (
+              <li key={label}>
+                {href ? (
+                  <Link
+                    href={href}
+                    className={styles.navLink}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ) : (
+                  <a
+                    href={`/#${id}`}
+                    className={styles.navLink}
+                    onClick={(e) => handleNavClick(e, id!)}
+                  >
+                    {label}
+                  </a>
+                )}
               </li>
             ))}
             <li>
@@ -124,15 +135,25 @@ export default function Header() {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <ul className={styles.mobileNavList}>
-            {navLinks.map(({ label, id }) => (
-              <li key={id}>
-                <a
-                  href={`/#${id}`}
-                  className={styles.mobileNavLink}
-                  onClick={(e) => handleNavClick(e, id)}
-                >
-                  {label}
-                </a>
+            {navLinks.map(({ label, id, href }) => (
+              <li key={label}>
+                {href ? (
+                  <Link
+                    href={href}
+                    className={styles.mobileNavLink}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ) : (
+                  <a
+                    href={`/#${id}`}
+                    className={styles.mobileNavLink}
+                    onClick={(e) => handleNavClick(e, id!)}
+                  >
+                    {label}
+                  </a>
+                )}
               </li>
             ))}
             <li>

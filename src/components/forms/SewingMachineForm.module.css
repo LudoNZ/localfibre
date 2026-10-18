@@ -1,0 +1,126 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.fieldset {
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.label {
+  font-weight: 500;
+  color: var(--color-body);
+}
+
+.radioGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.125rem;
+  border: 1px solid var(--color-accent-clay);
+  border-radius: 10px;
+  background-color: var(--color-background);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.radioOption:has(input:checked) {
+  border-color: var(--color-heading);
+  box-shadow: 0 0 0 3px rgba(127, 52, 11, 0.1);
+}
+
+.radioOption input {
+  accent-color: var(--color-heading);
+}
+
+.input {
+  padding: 0.875rem 1.125rem;
+  border: 1px solid var(--color-accent-clay);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-body);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-heading);
+  box-shadow: 0 0 0 3px rgba(127, 52, 11, 0.1);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.button {
+  align-self: flex-start;
+  margin-top: var(--spacing-xs);
+}
+
+.error {
+  color: #d32f2f;
+  font-size: 0.95rem;
+  padding: var(--spacing-sm);
+  background-color: rgba(211, 47, 47, 0.1);
+  border-radius: 10px;
+  margin-top: var(--spacing-xs);
+}
+
+.confirmation {
+  text-align: center;
+  padding: var(--spacing-md);
+  background-color: rgba(107, 142, 90, 0.1);
+  border: 1px solid var(--color-accent-green);
+  border-radius: 12px;
+}
+
+.confirmation h3 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.confirmation p {
+  margin-bottom: var(--spacing-xs);
+}
+
+.queueNumber {
+  font-size: 1.15rem;
+}
+
+.queueNumber strong {
+  color: var(--color-heading);
+  font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .form {
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,72 @@
+.page {
+  min-height: 100vh;
+}
+
+.hero {
+  background: linear-gradient(160deg, var(--color-background-soft) 0%, var(--color-background) 65%);
+  padding: 5rem 0 3rem;
+  text-align: center;
+}
+
+.tagline {
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  line-height: 1.8;
+  max-width: 620px;
+  margin: 0 auto;
+  opacity: 0.8;
+}
+
+.infoSection {
+  padding: 3rem 0;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.infoCard {
+  background: var(--color-background-soft);
+  padding: var(--spacing-md);
+  border-radius: 12px;
+  border-left: 3px solid var(--color-accent-clay);
+}
+
+.infoCard h3 {
+  font-size: 1.4rem;
+  margin-bottom: var(--spacing-xs);
+}
+
+.infoCard p {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.formSection {
+  padding: 2rem 0 5rem;
+}
+
+.formWrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  background-color: var(--color-background-soft);
+  padding: var(--spacing-xl);
+  border-radius: 16px;
+  border: 1px solid var(--color-accent-cream);
+}
+
+.formWrapper h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 0 2rem;
+  }
+
+  .formWrapper {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+}
