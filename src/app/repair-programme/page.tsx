@@ -3,11 +3,12 @@ import Link from "next/link"
 import Image from "next/image"
 import styles from "./page.module.css"
 import { getImpactNumbers, getRepurposedGallery } from "@/lib/impact"
+import { getSitePhotos } from "@/lib/sitePhotos"
 import ImpactStats from "@/components/ui/ImpactStats"
 import PhotoFrame from "@/components/ui/PhotoFrame"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
-import { photos, site } from "@/data/site"
+import { site } from "@/data/site"
 
 export const dynamic = "force-dynamic"
 
@@ -37,7 +38,11 @@ const donateHref = `mailto:${site.email}?subject=${encodeURIComponent("Donating 
 )}`
 
 export default async function RepairProgrammePage() {
-  const [impact, gallery] = await Promise.all([getImpactNumbers(), getRepurposedGallery()])
+  const [impact, gallery, photos] = await Promise.all([
+    getImpactNumbers(),
+    getRepurposedGallery(),
+    getSitePhotos(),
+  ])
 
   return (
     <div className={styles.page}>
@@ -61,11 +66,13 @@ export default async function RepairProgrammePage() {
             </div>
           </div>
           <PhotoFrame
-            src={photos.repair}
+            photo={photos.repair}
+            slot="repair"
             alt="A sewing machine being serviced"
             tilt="right"
             aspect="landscape"
             priority
+            sizes="(max-width: 900px) 100vw, 540px"
           />
         </div>
       </section>

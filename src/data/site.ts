@@ -14,16 +14,16 @@ export const site = {
 }
 
 /**
- * Photos (save them in /public/images/photos/ and put the path here).
- * Any photo left as null shows a fabric-texture placeholder instead.
+ * Default photos. The easiest way to set these is the "Edit" button an admin
+ * sees on each photo frame; uploaded photos take priority over these paths.
+ * Leave as null to show the fabric-texture placeholder.
  */
 export const photos: Record<string, string | null> = {
-  hero1: null, // e.g. "/images/photos/hero-1.jpg" – people sewing together
-  hero2: null, // e.g. "/images/photos/hero-2.jpg" – a repaired machine
-  hero3: null, // e.g. "/images/photos/hero-3.jpg" – fabric / mending detail
-  repair: null, // e.g. "/images/photos/repair-1.jpg" – a machine being serviced
-  event: null, // e.g. "/images/photos/event-1.jpg" – a social sewing session
-  founder: null, // e.g. "/images/photos/founder.jpg"
+  hero1: null, // people sewing together
+  hero2: null, // a repaired machine
+  repair: null, // a machine being serviced
+  event: null, // a social sewing session
+  founder: null, // e.g. "/images/photos/founder.jpg" (used in `team` below)
 }
 
 export interface TeamMember {

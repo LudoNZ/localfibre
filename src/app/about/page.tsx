@@ -5,7 +5,10 @@ import PhotoFrame from "@/components/ui/PhotoFrame"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import PartnersList from "@/components/ui/PartnersList"
-import { photos, site, team, values } from "@/data/site"
+import { site, team, values } from "@/data/site"
+import { getSitePhotos } from "@/lib/sitePhotos"
+
+export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "About | Local Fibre",
@@ -13,7 +16,9 @@ export const metadata: Metadata = {
     "Local Fibre is a West Auckland community group bringing people together to sew, mend and repair, and keeping textiles and sewing machines out of landfill.",
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const photos = await getSitePhotos()
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
@@ -28,11 +33,13 @@ export default function AboutPage() {
             />
           </div>
           <PhotoFrame
-            src={photos.event}
+            photo={photos.event}
+            slot="event"
             alt="A Local Fibre social sewing session"
             tilt="left"
             aspect="landscape"
             priority
+            sizes="(max-width: 900px) 100vw, 540px"
           />
         </div>
       </section>
@@ -84,7 +91,13 @@ export default function AboutPage() {
             <ul className={styles.team}>
               {team.map((person) => (
                 <li key={person.name} className={styles.person}>
-                  <PhotoFrame src={person.photo} alt={person.name} aspect="square" tilt="none" />
+                  <PhotoFrame
+                    photo={person.photo ? { src: person.photo } : null}
+                    alt={person.name}
+                    aspect="square"
+                    tilt="none"
+                    sizes="160px"
+                  />
                   <div>
                     <h3>{person.name}</h3>
                     <p className={styles.role}>{person.role}</p>

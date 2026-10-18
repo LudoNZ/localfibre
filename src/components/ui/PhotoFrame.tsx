@@ -1,34 +1,53 @@
-import Image from "next/image";
 import styles from "./PhotoFrame.module.css";
+import PhotoEditButton from "./PhotoEditButton";
+import type { PhotoSlot, SitePhoto } from "@/lib/sitePhotoSlots";
 
 interface PhotoFrameProps {
-  /** Path under /public. When missing, a fabric-texture placeholder is shown */
-  src?: string | null;
+  /** When missing, a fabric-texture placeholder is shown */
+  photo?: SitePhoto | null;
+  /** Fallback description when the photo has none of its own */
   alt: string;
+  /** Makes the photo editable in place by admins */
+  slot?: PhotoSlot;
   caption?: string;
   tilt?: "left" | "right" | "none";
   aspect?: "square" | "portrait" | "landscape";
   priority?: boolean;
+  /** How wide the photo renders at each screen size, so browsers fetch the right file */
   sizes?: string;
   className?: string;
 }
 
 /** Photo in a retro frame: thick outline, offset shadow and a slight tilt */
 export default function PhotoFrame({
-  src,
+  photo,
   alt,
+  slot,
   caption,
   tilt = "none",
   aspect = "landscape",
   priority = false,
-  sizes = "(max-width: 768px) 100vw, 50vw",
+  sizes = "(max-width: 900px) 100vw, 50vw",
   className = "",
 }: PhotoFrameProps) {
   return (
     <figure className={`${styles.frame} ${styles[tilt]} ${className}`}>
       <div className={`${styles.media} ${styles[aspect]}`}>
-        {src ? (
-          <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className={styles.image} />
+        {photo ? (
+          // Plain <img>: uploaded photos carry their own responsive srcset
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photo.src}
+            srcSet={photo.srcSet}
+            sizes={photo.srcSet ? sizes : undefined}
+            width={photo.width}
+            height={photo.height}
+            alt={photo.alt || alt}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
+            decoding="async"
+            className={styles.image}
+          />
         ) : (
           <div className={styles.placeholder} aria-hidden="true">
             <svg viewBox="0 0 64 64" className={styles.placeholderIcon}>
@@ -39,8 +58,9 @@ export default function PhotoFrame({
             </svg>
           </div>
         )}
+        {slot && <PhotoEditButton slot={slot} photo={photo ?? null} />}
       </div>
-      {src && caption && <figcaption className={styles.caption}>{caption}</figcaption>}
+      {photo && caption && <figcaption className={styles.caption}>{caption}</figcaption>}
     </figure>
   );
 }

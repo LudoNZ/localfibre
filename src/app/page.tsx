@@ -5,6 +5,7 @@ import ContactForm from "@/components/forms/ContactForm"
 import { getEvents, getNextEventId } from "@/lib/events"
 import { getPatterns } from "@/lib/patterns"
 import { getImpactNumbers } from "@/lib/impact"
+import { getSitePhotos } from "@/lib/sitePhotos"
 import EventCard from "@/components/ui/EventCard"
 import PatternCard from "@/components/ui/PatternCard"
 import PhotoFrame from "@/components/ui/PhotoFrame"
@@ -12,7 +13,7 @@ import ImpactStats from "@/components/ui/ImpactStats"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import PartnersList from "@/components/ui/PartnersList"
-import { photos, site } from "@/data/site"
+import { site } from "@/data/site"
 
 export const dynamic = "force-dynamic"
 
@@ -35,7 +36,12 @@ const offerings = [
 ] as const
 
 export default async function Home() {
-  const [events, patterns, impact] = await Promise.all([getEvents(), getPatterns(), getImpactNumbers()])
+  const [events, patterns, impact, photos] = await Promise.all([
+    getEvents(),
+    getPatterns(),
+    getImpactNumbers(),
+    getSitePhotos(),
+  ])
   const upcomingEvents = events.filter((e) => e.isUpcoming)
   const pastEvents = events.filter((e) => !e.isUpcoming)
   const nextEventId = getNextEventId(events)
@@ -77,18 +83,22 @@ export default async function Home() {
           </div>
           <div className={styles.heroCollage}>
             <PhotoFrame
-              src={photos.hero1}
+              photo={photos.hero1}
+              slot="hero1"
               alt="People sewing together at a Local Fibre session"
               tilt="left"
               aspect="portrait"
               priority
+              sizes="(max-width: 900px) 80vw, 420px"
               className={styles.collageMain}
             />
             <PhotoFrame
-              src={photos.hero2}
+              photo={photos.hero2}
+              slot="hero2"
               alt="A repaired sewing machine ready for a new home"
               tilt="right"
               aspect="square"
+              sizes="(max-width: 900px) 45vw, 260px"
               className={styles.collageSide}
             />
           </div>
@@ -146,10 +156,12 @@ export default async function Home() {
             </div>
           </div>
           <PhotoFrame
-            src={photos.repair}
+            photo={photos.repair}
+            slot="repair"
             alt="A sewing machine being serviced"
             tilt="right"
             aspect="landscape"
+            sizes="(max-width: 900px) 100vw, 540px"
           />
         </div>
       </section>

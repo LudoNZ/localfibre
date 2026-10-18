@@ -1,0 +1,123 @@
+.editButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  min-height: 36px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--mustard);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sticker-sm);
+}
+
+.editButton:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.editButton svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  background: var(--sand);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview span {
+  opacity: 0.6;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.field input[type="text"] {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 400;
+  background: #fffaf2;
+}
+
+.field input[type="text"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--mustard);
+}
+
+.field input[type="file"] {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.6rem;
+  border: 2px dashed var(--ink);
+  border-radius: 12px;
+  background: #fffaf2;
+  max-width: 100%;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.error {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(211, 47, 47, 0.1);
+  color: #b71c1c;
+  font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.remove {
+  background: none;
+  color: #b71c1c;
+  padding: 0.6rem 0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

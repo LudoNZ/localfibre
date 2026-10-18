@@ -15,6 +15,13 @@ service firebase.storage {
         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Website photos uploaded from the photo frames - publicly readable, admin-only upload
+    match /sitePhotos/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     // Everything else is denied by default
     match /{allPaths=**} {
       allow read, write: if false;
