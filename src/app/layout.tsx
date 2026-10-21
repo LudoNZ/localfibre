@@ -5,6 +5,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 import InstallPrompt from "@/components/ui/InstallPrompt";
+import NotificationPrompt from "@/components/ui/NotificationPrompt";
+import promptStyles from "@/components/ui/InstallPrompt.module.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -58,7 +60,10 @@ export default function RootLayout({
           <Header />
           <main>{children}</main>
           <Footer />
-          <InstallPrompt />
+          <div className={promptStyles.stack}>
+            <NotificationPrompt />
+            <InstallPrompt />
+          </div>
         </AuthProvider>
       </body>
     </html>

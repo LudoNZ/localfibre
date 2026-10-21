@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { after, NextRequest, NextResponse } from "next/server"
 import { db, FieldValue } from "@/lib/firebaseAdmin"
+import { notifyAdmins } from "@/lib/pushNotifications"
 import { requireAdmin } from "@/lib/adminAuth"
 import { OPEN_STATUSES } from "@/lib/sewingMachines"
 
@@ -87,6 +88,14 @@ export async function POST(request: NextRequest) {
       .where("status", "in", OPEN_STATUSES)
       .count()
       .get()
+
+    after(() =>
+      notifyAdmins({
+        title: "New sewing machine request",
+        body: `${applicantType === "communityGroup" ? `${groupName} (${fullName})` : fullName}, ${area}`,
+        url: "/admin?tab=sewing",
+      })
+    )
 
     return NextResponse.json(
       { message: "Application received", queuePosition: open.data().count },

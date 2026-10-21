@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { after, NextRequest, NextResponse } from "next/server"
 import { db, FieldValue } from "@/lib/firebaseAdmin"
+import { notifyAdmins } from "@/lib/pushNotifications"
 
 export async function GET() {
   try {
@@ -50,6 +51,14 @@ export async function POST(request: NextRequest) {
       status: "received",
       createdAt: FieldValue.serverTimestamp(),
     })
+
+    after(() =>
+      notifyAdmins({
+        title: `New message from ${name}`,
+        body: message.length > 140 ? `${message.slice(0, 140)}…` : message,
+        url: "/admin?tab=messages",
+      })
+    )
 
     return NextResponse.json(
       { message: "Submission stored", id: docRef.id },

@@ -101,7 +101,13 @@ const formatShortDate = (iso: string | null) =>
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>("users");
+  // Notifications link straight to a tab, e.g. /admin?tab=messages
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const requested = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("tab")
+      : null;
+    return TABS.find(({ id }) => id === requested)?.id ?? "users";
+  });
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
