@@ -255,6 +255,31 @@ export default function AdminPage() {
     }
   };
 
+  const openInfoSheet = async (file: string, download = false) => {
+    // Open the tab now, before awaiting, so mobile browsers don't block it
+    const tab = download ? null : window.open("", "_blank");
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch(`/api/info-sheets/${file}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Couldn't load the info sheet");
+      const url = URL.createObjectURL(await res.blob());
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file;
+        a.click();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      tab?.close();
+      setError(err instanceof Error ? err.message : "Couldn't load the info sheet");
+    }
+  };
+
   const fetchData = async () => {
     setLoadingData(true);
     setError("");
@@ -582,6 +607,16 @@ export default function AdminPage() {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Admin Dashboard</h1>
+
+      {/* Printable info sheets (built in print/, served admin-only) */}
+      <div className={styles.infoSheets}>
+        <button type="button" className="btn-accent" onClick={() => openInfoSheet("repair-programme.pdf")}>
+          View info sheet (PDF)
+        </button>
+        <button type="button" className="btn-secondary" onClick={() => openInfoSheet("repair-programme.svg", true)}>
+          Download SVG (editable)
+        </button>
+      </div>
 
       <div className={styles.tabs} role="tablist">
         {TABS.map(({ id, label }) => (

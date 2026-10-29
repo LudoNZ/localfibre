@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<title>Sewing Machine Repair Programme – Local Fibre info sheet</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+  /* Same palette as src/app/globals.css */
+  :root {
+    --rust: #7f340b;
+    --rust-deep: #5e2508;
+    --tan: #d9935a;
+    --mustard: #e0a526;
+    --olive: #5f6b2d;
+    --cream: #f9f2e6;
+    --sand: #f2e6d2;
+    --ink: #2b1407;
+    --body: #411f0a;
+    --heading: "Fraunces", Georgia, serif;
+    --sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  @page { size: A4; margin: 0; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #ddd;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    font-family: var(--sans);
+    color: var(--body);
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  .sheet {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    background: var(--cream);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media screen { .sheet { margin: 10mm auto; box-shadow: 0 4px 20px rgba(0,0,0,.2); } }
+
+  h1, h2, h3 {
+    font-family: var(--heading);
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    color: var(--rust);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 1mm 3mm;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    margin-bottom: 3mm;
+  }
+
+  .pad { padding-left: 16mm; padding-right: 16mm; }
+
+  /* ── Hero ───────────────────────────── */
+  .hero {
+    padding-top: 8mm;
+    padding-bottom: 2mm;
+    display: grid;
+    grid-template-columns: 1fr 52mm;
+    gap: 8mm;
+    align-items: center;
+  }
+
+  .logo { height: 18mm; width: auto; display: block; margin: -3mm 0 1mm -3mm; }
+
+  .hero .eyebrow { color: var(--olive); }
+
+  .hero h1 {
+    font-size: 28pt;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 3mm;
+  }
+
+  .hero p { font-size: 10.5pt; line-height: 1.5; }
+
+  .hero-art {
+    position: relative;
+    width: 52mm;
+    height: 52mm;
+    margin-top: 8mm;
+  }
+
+  .hero-art .blob {
+    position: absolute;
+    inset: 0;
+    background: var(--mustard);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+
+  .hero-art svg {
+    position: absolute;
+    inset: 8mm;
+    width: 36mm;
+    height: 36mm;
+  }
+
+  .sticker {
+    position: absolute;
+    right: -3mm;
+    bottom: -1mm;
+    background: var(--cream);
+    color: var(--rust);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    box-shadow: 2px 2px 0 var(--ink);
+    font-family: var(--heading);
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    font-weight: 800;
+    font-size: 10pt;
+    padding: 1.5mm 3.5mm;
+    transform: rotate(-6deg);
+  }
+
+  /* ── Waves ──────────────────────────── */
+  .wave { display: block; height: 6mm; line-height: 0; position: relative; z-index: 1; }
+  /* overhang into the next section so no hairline seam shows */
+  .wave svg { width: 100%; height: calc(100% + 0.6mm); display: block; }
+  .flip svg { transform: scaleX(-1); }
+
+  /* ── Steps ──────────────────────────── */
+  .steps-section {
+    background: var(--rust);
+    padding-top: 2mm;
+    padding-bottom: 4mm;
+  }
+
+  .steps-section .eyebrow { color: var(--mustard); }
+  .steps-section h2 { color: var(--cream); font-size: 21pt; margin-bottom: 4.5mm; }
+
+  .steps {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 7mm;
+  }
+
+  .step {
+    position: relative;
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 5mm;
+    box-shadow: 4px 4px 0 var(--ink);
+    padding: 4mm 4mm 4mm;
+    text-align: center;
+  }
+
+  .step-num {
+    position: absolute;
+    top: -4mm;
+    left: -3mm;
+    width: 9mm;
+    height: 9mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--mustard);
+    border: 2px solid var(--ink);
+    font-family: var(--heading);
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    font-weight: 900;
+    font-size: 13pt;
+    color: var(--ink);
+  }
+
+  .step-icon {
+    width: 21mm;
+    height: 21mm;
+    margin: 0 auto 2.5mm;
+    border-radius: 50%;
+    background: var(--sand);
+    border: 1.5px dashed var(--tan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-icon svg { width: 15mm; height: 15mm; }
+
+  .step h3 { font-size: 14pt; margin-bottom: 1.5mm; }
+  .step .lead { font-weight: 700; color: var(--ink); font-size: 9.5pt; margin-bottom: 1.5mm; line-height: 1.35; }
+  .step p { font-size: 8.8pt; line-height: 1.45; }
+
+  /* stitched arrow between cards */
+  .step + .step::before {
+    content: "";
+    position: absolute;
+    left: -7mm;
+    top: 14mm;
+    width: 7mm;
+    border-top: 2px dashed var(--mustard);
+  }
+
+  /* ── Who + donate ───────────────────── */
+  .info {
+    padding-top: 3mm;
+    padding-bottom: 1mm;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 8mm;
+  }
+
+  .info .eyebrow { color: var(--rust); }
+  .info h2 { font-size: 17pt; margin-bottom: 2.5mm; }
+  .info p { font-size: 9.5pt; line-height: 1.55; margin-bottom: 2mm; }
+
+  .ticks { list-style: none; margin-top: 1mm; }
+  .ticks li {
+    position: relative;
+    padding-left: 6mm;
+    font-size: 9.5pt;
+    margin-bottom: 1.3mm;
+  }
+  .ticks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1.1mm;
+    width: 3.2mm;
+    height: 3.2mm;
+    border-radius: 50%;
+    background: var(--mustard);
+    border: 1.5px solid var(--ink);
+  }
+
+  .donate-card {
+    background: var(--sand);
+    border: 2px solid var(--ink);
+    border-radius: 5mm;
+    box-shadow: 4px 4px 0 var(--ink);
+    padding: 5mm;
+    align-self: start;
+  }
+
+  .donate-card h2 { font-size: 15pt; }
+  .donate-card .email {
+    display: inline-block;
+    margin-top: 1mm;
+    font-weight: 700;
+    color: var(--rust);
+    font-size: 10pt;
+  }
+
+  /* ── CTA band ───────────────────────── */
+  .cta {
+    margin-top: auto;
+    background: var(--mustard);
+    color: var(--ink);
+    padding-top: 1mm;
+    padding-bottom: 7mm;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8mm;
+    align-items: center;
+  }
+
+  .cta h2 { color: var(--ink); font-size: 22pt; margin-bottom: 2mm; }
+  .cta p { font-size: 10.5pt; margin-bottom: 2.5mm; }
+
+  .url {
+    display: inline-block;
+    background: var(--rust);
+    color: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    box-shadow: 3px 3px 0 var(--ink);
+    font-weight: 700;
+    font-size: 10.5pt;
+    padding: 2mm 5mm;
+  }
+
+  .social { margin-top: 3mm; font-size: 9pt; font-weight: 600; }
+
+  .qr-card {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 5mm;
+    box-shadow: 4px 4px 0 var(--ink);
+    padding: 3.5mm 3.5mm 2mm;
+    text-align: center;
+    transform: rotate(2deg);
+  }
+
+  .qr-card .qr { width: 30mm; height: 30mm; display: block; }
+  .qr-card span {
+    display: block;
+    margin-top: 1.5mm;
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+
+  /* on-screen toolbar (never printed) */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 3mm;
+    justify-content: center;
+    padding: 3mm;
+    background: var(--ink);
+    font-family: var(--sans);
+  }
+  .toolbar a, .toolbar button {
+    font: 600 11pt var(--sans);
+    color: var(--ink);
+    background: var(--mustard);
+    border: 2px solid var(--cream);
+    border-radius: 999px;
+    padding: 2mm 5mm;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  @media print { .toolbar { display: none; } }
+
+  /* line icons */
+  .ico { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  /* no .ico ancestor here: these match inside the <use> copies of the symbols */
+  .fill-cream { fill: var(--cream); }
+  .fill-rust { fill: var(--rust); stroke: none; }
+  .fill-tan { fill: var(--tan); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <a href="repair-programme.pdf" download>Download PDF</a>
+  <button type="button" data-export-svg="repair-programme.svg">Download SVG</button>
+</div>
+
+<!-- Reusable outline icons -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- Sewing machine -->
+    <symbol id="i-machine" viewBox="0 0 64 64">
+      <rect x="5" y="47" width="54" height="8" rx="2.5" class="fill-tan"/>
+      <path class="fill-cream" d="M53 47 V18 a6 6 0 0 0 -6 -6 H16 a6 6 0 0 0 -6 6 v9 a4 4 0 0 0 4 4 h21 a4 4 0 0 1 4 4 V47 Z"/>
+      <ellipse cx="55" cy="25" rx="3" ry="6" class="fill-cream"/>
+      <path d="M16 31 v8"/>
+      <path d="M12 41 h8"/>
+      <rect x="26" y="5" width="7" height="7" rx="1.5" class="fill-tan"/>
+      <path d="M33 8 c 6 0 8 3 10 4"/>
+      <path d="M18 19 h22" stroke-dasharray="2 3.5"/>
+    </symbol>
+
+    <!-- Screwdriver + spanner -->
+    <symbol id="i-tools" viewBox="0 0 64 64">
+      <g transform="rotate(45 32 32)">
+        <rect x="29" y="20" width="6" height="36" rx="3" class="fill-cream"/>
+        <path class="fill-cream" d="M28 5 V12 H36 V5 A9.5 9.5 0 1 1 28 5 Z"/>
+      </g>
+      <g transform="rotate(-45 32 32)">
+        <path d="M32 30 V54"/>
+        <path d="M30.5 54 h3 l-1.5 4 z" class="fill-cream"/>
+        <rect x="26" y="5" width="12" height="24" rx="5" class="fill-tan"/>
+        <path d="M30 10 v14 M34 10 v14"/>
+      </g>
+    </symbol>
+
+    <!-- House with heart -->
+    <symbol id="i-home" viewBox="0 0 64 64">
+      <path class="fill-cream" d="M14 28 V55 H50 V28"/>
+      <path d="M7 31 L32 9 L57 31"/>
+      <path d="M43 17 V11 h5 v10.5"/>
+      <path class="fill-rust" d="M32 47 c -9 -6 -11 -10 -9 -13.5 c 2 -3 6.5 -2.6 9 0.8 c 2.5 -3.4 7 -3.8 9 -0.8 c 2 3.5 0 7.5 -9 13.5 z"/>
+    </symbol>
+
+    <!-- Heart-in-hand: donate -->
+    <symbol id="i-donate" viewBox="0 0 64 64">
+      <path class="fill-cream" d="M32 23 c -4 -8 -15 -10 -15 -3 c 0 4 8 4 15 3 z M32 23 c 4 -8 15 -10 15 -3 c 0 4 -8 4 -15 3 z"/>
+      <rect x="13" y="33" width="38" height="23" rx="2" class="fill-cream"/>
+      <rect x="9" y="23" width="46" height="10" rx="2" class="fill-tan"/>
+      <path d="M32 23 V56"/>
+      <path class="fill-rust" d="M42 50 c -5.5 -3.7 -6.8 -6.1 -5.6 -8.3 c 1.2 -1.9 4 -1.6 5.6 0.5 c 1.6 -2.1 4.4 -2.4 5.6 -0.5 c 1.2 2.2 -0.1 4.6 -5.6 8.3 z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="sheet">
+
+  <section class="hero pad">
+    <div>
+      <img class="logo" src="../public/images/LFLogo-Horizontal.png" alt="Local Fibre">
+      <span class="eyebrow">Our programme</span>
+      <h1>Sewing Machine Repair Programme</h1>
+      <p>We give unused sewing machines a second life. Donated machines are serviced and
+        rehomed with people and community groups who will use them, keeping them out of
+        landfill and putting a valuable skill within reach.</p>
+    </div>
+    <div class="hero-art">
+      <div class="blob"></div>
+      <svg class="ico"><use href="#i-machine"/></svg>
+      <div class="sticker">a second life!</div>
+    </div>
+  </section>
+
+  <div class="wave" style="background: var(--cream)">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0 30 C 120 0, 240 0, 360 30 S 600 60, 720 30 S 960 0, 1080 30 S 1320 60, 1440 30 L1440 60 L0 60 Z" fill="#7f340b"/></svg>
+  </div>
+
+  <section class="steps-section pad">
+    <span class="eyebrow">How it works</span>
+    <h2>From cupboard to community</h2>
+    <ol class="steps">
+      <li class="step">
+        <span class="step-num">1</span>
+        <div class="step-icon"><svg class="ico"><use href="#i-donate"/></svg></div>
+        <h3>Donate</h3>
+        <p class="lead">Give an unused sewing machine a second life.</p>
+        <p>Instead of sitting in a cupboard or heading to landfill, your machine goes back to work.</p>
+      </li>
+      <li class="step">
+        <span class="step-num">2</span>
+        <div class="step-icon"><svg class="ico"><use href="#i-tools"/></svg></div>
+        <h3>Service &amp; repair</h3>
+        <p class="lead">Machines are cleaned, checked and repaired.</p>
+        <p>Each one is logged with its details and photos, so we know its history.</p>
+      </li>
+      <li class="step">
+        <span class="step-num">3</span>
+        <div class="step-icon"><svg class="ico"><use href="#i-home"/></svg></div>
+        <h3>Rehome</h3>
+        <p class="lead">Ready machines go to people &amp; community groups.</p>
+        <p>Matched in order from our waiting list and collected from West Auckland.</p>
+      </li>
+    </ol>
+  </section>
+
+  <div class="wave flip" style="background: var(--rust)">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0 30 C 120 0, 240 0, 360 30 S 600 60, 720 30 S 960 0, 1080 30 S 1320 60, 1440 30 L1440 60 L0 60 Z" fill="#f9f2e6"/></svg>
+  </div>
+
+  <section class="info pad">
+    <div>
+      <span class="eyebrow">Who it helps</span>
+      <h2>Anyone can apply</h2>
+      <p>For yourself, or on behalf of a community group or organisation.</p>
+      <ul class="ticks">
+        <li>Machines are matched in the order people applied</li>
+        <li>Priority for people in or near West Auckland</li>
+        <li>For mending, learning or making for your whānau</li>
+      </ul>
+    </div>
+    <div class="donate-card">
+      <h2>Have a machine you no longer use?</h2>
+      <p>Donate it, and we'll make sure it gets back into a maker's hands.</p>
+      <span class="email">hello@localfibre.co.nz</span>
+    </div>
+  </section>
+
+  <div class="wave" style="background: var(--cream); margin-top: auto">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0 30 C 120 0, 240 0, 360 30 S 600 60, 720 30 S 960 0, 1080 30 S 1320 60, 1440 30 L1440 60 L0 60 Z" fill="#e0a526"/></svg>
+  </div>
+
+  <section class="cta pad" style="margin-top: 0">
+    <div>
+      <h2>Apply or donate today</h2>
+      <p>Scan the code or visit our website to join the waiting list.</p>
+      <span class="url">localfibre.co.nz/repair-programme</span>
+      <div class="social">Instagram @localfibre · West Auckland, Tāmaki Makaurau</div>
+    </div>
+    <div class="qr-card">
+      <svg class="qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" shape-rendering="crispEdges"><path stroke="#2b1407" d="M0 0.5h7m1 0h2m1 0h3m1 0h2m1 0h1m4 0h1m2 0h7M0 1.5h1m5 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m1 0h1m1 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m2 0h3m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h1m1 0h2m4 0h2m3 0h2m3 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m1 0h6m2 0h1m2 0h1m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m1 0h2m1 0h2m1 0h2m4 0h3m3 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m3 0h1m4 0h5m1 0h2M0 8.5h1m3 0h1m1 0h7m2 0h1m1 0h2m2 0h9m2 0h1M2 9.5h1m4 0h3m4 0h2m1 0h2m2 0h1m1 0h1m1 0h1m3 0h3M0 10.5h4m2 0h1m1 0h1m1 0h7m1 0h1m4 0h1m1 0h2m2 0h1m1 0h1M1 11.5h5m1 0h2m2 0h3m2 0h1m2 0h1m2 0h1m1 0h3m4 0h1M0 12.5h1m4 0h3m1 0h1m2 0h2m1 0h2m2 0h1m2 0h3m1 0h1m1 0h2m1 0h2M0 13.5h1m1 0h4m1 0h3m1 0h4m2 0h4m2 0h1m1 0h1m1 0h1M0 14.5h2m1 0h4m1 0h1m3 0h1m1 0h2m2 0h1m1 0h1m1 0h6m3 0h1M2 15.5h1m6 0h1m2 0h2m1 0h3m3 0h1m1 0h6M2 16.5h1m3 0h1m1 0h1m1 0h1m2 0h1m2 0h2m1 0h6m1 0h1m1 0h2m1 0h1M0 17.5h3m2 0h1m1 0h1m1 0h4m2 0h2m1 0h1m4 0h2m4 0h3M0 18.5h1m1 0h5m1 0h4m2 0h4m2 0h6m1 0h1m1 0h1m1 0h1M1 19.5h2m1 0h1m2 0h2m1 0h3m1 0h1m2 0h2m2 0h1m2 0h4M2 20.5h2m1 0h3m1 0h1m2 0h1m1 0h2m2 0h1m1 0h1m3 0h1m1 0h4m1 0h2M0 21.5h1m2 0h3m1 0h1m1 0h3m1 0h2m1 0h1m2 0h1m2 0h2m3 0h1m2 0h2M4 22.5h1m1 0h2m1 0h1m1 0h3m2 0h1m2 0h1m1 0h5m1 0h5M8 23.5h1m1 0h1m2 0h2m2 0h5m1 0h1m1 0h5m1 0h1M0 24.5h3m2 0h6m1 0h1m1 0h2m1 0h1m2 0h3m1 0h5M8 25.5h2m1 0h3m1 0h4m2 0h1m1 0h2m3 0h1m1 0h1M0 26.5h7m1 0h1m6 0h2m1 0h1m5 0h1m1 0h1m1 0h2m1 0h1M0 27.5h1m5 0h1m3 0h1m1 0h2m5 0h2m1 0h1m1 0h1m3 0h1m2 0h1M0 28.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m2 0h1m2 0h1m1 0h6m2 0h1M0 29.5h1m1 0h3m1 0h1m2 0h3m1 0h2m2 0h5m1 0h1m2 0h4m1 0h1M0 30.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h2m2 0h1m1 0h2m3 0h4M0 31.5h1m5 0h1m2 0h4m2 0h4m2 0h4M0 32.5h7m1 0h1m5 0h1m2 0h9m3 0h1m2 0h1"/></svg>
+      <span>Scan me</span>
+    </div>
+  </section>
+
+</div>
+<script src="sheet-export.js"></script>
+</body>
+</html>

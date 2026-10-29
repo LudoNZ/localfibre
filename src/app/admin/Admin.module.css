@@ -10,6 +10,13 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.infoSheets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin: calc(-1 * var(--spacing-md)) 0 var(--spacing-md);
+}
+
 .loading {
   display: flex;
   justify-content: center;
