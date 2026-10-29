@@ -87,6 +87,43 @@
   margin: 0;
 }
 
+/* Admin-only install link (FooterInstall) */
+.installButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 0;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mustard);
+  background: transparent;
+  border: 1.5px solid var(--mustard);
+  border-radius: 999px;
+}
+
+.installButton:hover {
+  background: var(--mustard);
+  color: var(--ink);
+}
+
+.installButton svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.installSteps {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--cream);
+  opacity: 0.85;
+}
+
 @media (max-width: 768px) {
   .footerContent {
     grid-template-columns: 1fr 1fr;

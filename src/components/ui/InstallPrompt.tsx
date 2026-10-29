@@ -3,13 +3,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { isIos, isRunningAsApp, promptInstall, useInstallApp } from "@/lib/installApp";
 import styles from "./InstallPrompt.module.css";
-
-// Chrome/Edge/Android fire this before offering to install the app
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
 
 const SNOOZE_KEY = "lf-install-prompt-snoozed-until";
 const SNOOZE_DAYS = 14;
@@ -30,20 +25,11 @@ const snooze = (days: number) => {
   }
 };
 
-const isRunningAsApp = () =>
-  window.matchMedia("(display-mode: standalone)").matches ||
-  (navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-const isIos = () =>
-  /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-  // iPadOS reports itself as a Mac
-  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
 const subscribeNoop = () => () => {};
 
 export default function InstallPrompt() {
   const { user, loading } = useAuth();
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const { canPrompt, justInstalled } = useInstallApp();
   const [dismissed, setDismissed] = useState(false);
   // Browser-only checks: false during server render, real values once hydrated
   const isClient = useSyncExternalStore(subscribeNoop, () => true, () => false);
@@ -56,22 +42,6 @@ export default function InstallPrompt() {
         console.error("Service worker registration failed:", err);
       });
     }
-
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setInstallEvent(e as BeforeInstallPromptEvent);
-    };
-    const handleInstalled = () => {
-      setInstallEvent(null);
-      setDismissed(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-    window.addEventListener("appinstalled", handleInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
-      window.removeEventListener("appinstalled", handleInstalled);
-    };
   }, []);
 
   const handleNotNow = () => {
@@ -80,16 +50,12 @@ export default function InstallPrompt() {
   };
 
   const handleInstall = async () => {
-    if (!installEvent) return;
-    await installEvent.prompt();
-    const { outcome } = await installEvent.userChoice;
-    // The browser only lets us show its install dialog once per event
-    setInstallEvent(null);
+    const outcome = await promptInstall();
     if (outcome === "dismissed") snooze(SNOOZE_DAYS);
     setDismissed(true);
   };
 
-  if (loading || !user || !eligible || dismissed || (!installEvent && !showIosSteps)) {
+  if (loading || !user || !eligible || dismissed || justInstalled || (!canPrompt && !showIosSteps)) {
     return null;
   }
 

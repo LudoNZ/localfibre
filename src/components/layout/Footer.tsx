@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./Footer.module.css";
+import FooterInstall from "./FooterInstall";
 import { site } from "@/data/site";
 
 const exploreLinks = [
@@ -35,6 +36,7 @@ export default function Footer() {
             <a href={`mailto:${site.email}`} className={styles.email}>
               {site.email}
             </a>
+            <FooterInstall />
           </div>
 
           <div className={styles.column}>
