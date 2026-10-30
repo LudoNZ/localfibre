@@ -80,7 +80,7 @@ type Tab = "users" | "events" | "patterns" | "machines" | "sewing" | "messages" 
 const TABS: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "events", label: "Events" },
-  { id: "patterns", label: "Patterns" },
+  { id: "patterns", label: "Free resources" },
   { id: "machines", label: "Machines" },
   { id: "sewing", label: "Waiting List" },
   { id: "messages", label: "Messages" },
@@ -496,7 +496,16 @@ export default function AdminPage() {
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const storageRef = ref(storage, `${folder}/${timestamp}-${safeName}`);
-    await uploadBytes(storageRef, file);
+    try {
+      await uploadBytes(storageRef, file);
+    } catch (err) {
+      if ((err as { code?: string }).code === "storage/unauthorized") {
+        throw new Error(
+          "Upload blocked by Firebase Storage permissions. Your admin account is fine; the storage rules can't check it yet."
+        );
+      }
+      throw err;
+    }
     return getDownloadURL(storageRef);
   };
 
@@ -507,7 +516,7 @@ export default function AdminPage() {
     setError("");
     try {
       const url = await handleUploadFile(file, "patterns/images");
-      setPatternForm({ ...patternForm, image: url });
+      setPatternForm((form) => ({ ...form, image: url }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload image");
     } finally {
@@ -522,7 +531,7 @@ export default function AdminPage() {
     setError("");
     try {
       const url = await handleUploadFile(file, "patterns/pdfs");
-      setPatternForm({ ...patternForm, pdfUrl: url });
+      setPatternForm((form) => ({ ...form, pdfUrl: url }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload PDF");
     } finally {
@@ -539,9 +548,10 @@ export default function AdminPage() {
         : "/api/patterns";
       const method = editingPattern ? "PUT" : "POST";
 
+      const token = await user?.getIdToken();
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(patternForm),
       });
       const data = await res.json();
@@ -576,7 +586,11 @@ export default function AdminPage() {
     if (!confirm("Are you sure you want to delete this pattern?")) return;
     setError("");
     try {
-      const res = await fetch(`/api/patterns/${id}`, { method: "DELETE" });
+      const token = await user?.getIdToken();
+      const res = await fetch(`/api/patterns/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       fetchData();
@@ -1101,7 +1115,7 @@ export default function AdminPage() {
       {activeTab === "patterns" && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2>Patterns</h2>
+            <h2>Free resources</h2>
             <button
               className="btn-primary"
               onClick={() => {
@@ -1115,14 +1129,14 @@ export default function AdminPage() {
                 });
               }}
             >
-              {showPatternForm ? "Cancel" : "Add Pattern"}
+              {showPatternForm ? "Cancel" : "Add resource"}
             </button>
           </div>
 
           <EditModal
             isOpen={showPatternForm && !editingPattern}
             onClose={() => setShowPatternForm(false)}
-            title="Add Pattern"
+            title="Add resource"
           >
             <form onSubmit={handleCreateOrUpdatePattern} className={styles.form}>
               <div className={styles.formGroup}>
@@ -1179,6 +1193,7 @@ export default function AdminPage() {
                   )}
                 </div>
               </div>
+              {error && <div className={styles.error}>{error}</div>}
               <button
                 type="submit"
                 className="btn-primary"
@@ -1248,6 +1263,7 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+              {error && <div className={styles.error}>{error}</div>}
               <button
                 type="submit"
                 className="btn-primary"

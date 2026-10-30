@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db, FieldValue } from "@/lib/firebaseAdmin";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export interface PatternData {
   id?: string;
@@ -31,7 +32,10 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const patternData: PatternData = await request.json();
 

@@ -12,8 +12,8 @@ const navLinks = [
   { label: "About", href: "/about" },
   { label: "Repair Programme", href: "/repair-programme" },
   { label: "Events", href: "/#events" },
-  { label: "Patterns", href: "/#patterns" },
   { label: "Contact", href: "/#contact" },
+  { label: "Free resources", href: "/#resources" },
 ];
 
 export default function Header() {

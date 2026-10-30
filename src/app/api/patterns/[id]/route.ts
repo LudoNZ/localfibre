@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, FieldValue } from "@/lib/firebaseAdmin";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const patternData = await request.json();
@@ -31,6 +35,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
 

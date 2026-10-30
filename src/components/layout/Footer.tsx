@@ -9,7 +9,7 @@ const exploreLinks = [
   { label: "Repair Programme", href: "/repair-programme" },
   { label: "Apply for a machine", href: "/sewing-machines" },
   { label: "Events", href: "/#events" },
-  { label: "Free patterns", href: "/#patterns" },
+  { label: "Free resources", href: "/#resources" },
 ];
 
 const connectLinks = [

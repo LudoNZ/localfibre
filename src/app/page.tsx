@@ -238,12 +238,12 @@ export default async function Home() {
 
       <WaveDivider from="var(--sand)" to="var(--cream)" />
 
-      {/* Patterns */}
-      <section id="patterns" className={styles.patternsSection}>
+      {/* Free resources (patterns, guides) */}
+      <section id="resources" className={styles.patternsSection}>
         <div className="container">
           <SectionHeading
-            eyebrow="Free resources"
-            title="Free patterns"
+            eyebrow="Free to download"
+            title="Free resources"
             intro="Resource-sharing for a creative, low-waste Aotearoa."
           />
           {patterns.length > 0 ? (
@@ -253,10 +253,10 @@ export default async function Home() {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>Patterns coming soon! Check back later.</p>
+            <p className={styles.emptyState}>Resources coming soon! Check back later.</p>
           )}
           <p className={styles.kohaText}>
-            All patterns are free to download. If you&apos;d like to support our work, koha
+            All resources are free to download. If you&apos;d like to support our work, koha
             (donation) options will be available soon.
           </p>
         </div>
