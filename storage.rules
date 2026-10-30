@@ -1,4 +1,8 @@
 rules_version = '2';
+
+// The admin checks below read users/{uid} with firestore.get(). That needs the
+// Storage service agent to hold "Firebase Rules Firestore Service Agent"; the
+// CLI offers to grant it only on an interactive deploy that uploads new rules.
 service firebase.storage {
   match /b/{bucket}/o {
     // Pattern images and PDFs - publicly readable, admin-only upload

@@ -238,12 +238,12 @@ export default async function Home() {
 
       <WaveDivider from="var(--sand)" to="var(--cream)" />
 
-      {/* Free resources (patterns, guides) */}
+      {/* Resources (patterns, guides) */}
       <section id="resources" className={styles.patternsSection}>
         <div className="container">
           <SectionHeading
             eyebrow="Free to download"
-            title="Free resources"
+            title="Resources"
             intro="Resource-sharing for a creative, low-waste Aotearoa."
           />
           {patterns.length > 0 ? (

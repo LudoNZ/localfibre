@@ -13,7 +13,7 @@ const navLinks = [
   { label: "Repair Programme", href: "/repair-programme" },
   { label: "Events", href: "/#events" },
   { label: "Contact", href: "/#contact" },
-  { label: "Free resources", href: "/#resources" },
+  { label: "Resources", href: "/#resources" },
 ];
 
 export default function Header() {

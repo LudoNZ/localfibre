@@ -80,7 +80,7 @@ type Tab = "users" | "events" | "patterns" | "machines" | "sewing" | "messages" 
 const TABS: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "events", label: "Events" },
-  { id: "patterns", label: "Free resources" },
+  { id: "patterns", label: "Resources" },
   { id: "machines", label: "Machines" },
   { id: "sewing", label: "Waiting List" },
   { id: "messages", label: "Messages" },
@@ -1115,7 +1115,7 @@ export default function AdminPage() {
       {activeTab === "patterns" && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2>Free resources</h2>
+            <h2>Resources</h2>
             <button
               className="btn-primary"
               onClick={() => {
