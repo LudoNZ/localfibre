@@ -545,6 +545,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
         isOpen={formOpen}
         onClose={closeForm}
         title={editing ? `Edit ${machineLabel(editing)}` : "Add Machine"}
+        wide
       >
         <MachineForm
           key={formKey}
@@ -569,7 +570,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
         title={handingOver ? `Hand over ${machineLabel(handingOver.machine)}` : "Hand over"}
       >
         {handingOver && (
-          <form onSubmit={handOver} className={adminStyles.form}>
+          <form onSubmit={handOver} className={`${adminStyles.form} ${styles.modalForm}`}>
             {error && <div className={adminStyles.error}>{error}</div>}
             <p className={styles.hint}>
               To <strong>{handingOver.machine.recipient?.fullName}</strong>. This adds it to the handed-over log.
@@ -598,6 +599,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
         isOpen={!!servicingMachine}
         onClose={() => setServicingId(null)}
         title={servicingMachine ? `Service ${machineLabel(servicingMachine)}` : "Service"}
+        wide
       >
         {servicingMachine && (
           <ServicePanel
@@ -618,7 +620,8 @@ export default function MachinesPanel({ user }: { user: User | null }) {
       </EditModal>
 
       {/* Brands, models, types and their comes-with lists */}
-      <EditModal isOpen={libraryOpen} onClose={() => setLibraryOpen(false)} title="Machine library">
+      <EditModal isOpen={libraryOpen} onClose={() => setLibraryOpen(false)} title="Machine library"
+        wide>
         <MachineLibraryEditor
           api={api}
           library={library}

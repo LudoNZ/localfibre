@@ -475,6 +475,7 @@ export default function ServicePanel({
         isOpen={!!purchaseForm}
         onClose={() => setPurchaseForm(null)}
         title={purchaseForm?.editing ? "Edit purchase" : `Purchase for ${machineLabel(machine)}`}
+        wide
       >
         {purchaseForm && (
           <PurchaseForm

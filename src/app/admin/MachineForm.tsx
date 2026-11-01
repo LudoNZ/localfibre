@@ -321,7 +321,7 @@ export default function MachineForm({
   const modelLabel = [form.brand.trim(), form.model.trim()].join(" ");
 
   return (
-    <form onSubmit={handleSave} className={adminStyles.form}>
+    <form onSubmit={handleSave} className={`${adminStyles.form} ${styles.modalForm}`}>
       {error && <div className={adminStyles.error}>{error}</div>}
 
       {/* Brand + model, picked together from the library */}

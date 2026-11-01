@@ -113,7 +113,7 @@ export default function PurchaseForm({
   }
 
   return (
-    <form onSubmit={handleSave} className={adminStyles.form}>
+    <form onSubmit={handleSave} className={`${adminStyles.form} ${styles.modalForm}`}>
       {error && <div className={adminStyles.error}>{error}</div>}
 
       <div className={adminStyles.formGroup}>

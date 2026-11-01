@@ -20,6 +20,10 @@
   box-shadow: 6px 6px 0 var(--ink);
 }
 
+.wide {
+  max-width: 760px;
+}
+
 .header {
   display: flex;
   justify-content: space-between;

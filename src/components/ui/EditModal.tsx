@@ -8,12 +8,14 @@ interface EditModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  // Wider window for long forms (e.g. adding a machine)
+  wide?: boolean;
 }
 
 // Open modals, newest last, so a modal opened from another one behaves as the top layer
 const openModals: object[] = [];
 
-export default function EditModal({ isOpen, onClose, title, children }: EditModalProps) {
+export default function EditModal({ isOpen, onClose, title, children, wide }: EditModalProps) {
   const id = useRef({});
   const onCloseRef = useRef(onClose);
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function EditModal({ isOpen, onClose, title, children }: EditModa
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${wide ? styles.wide : ""}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>{title}</h2>
           <button

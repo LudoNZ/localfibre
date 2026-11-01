@@ -556,9 +556,10 @@ export default function FundingPanel({ user }: { user: User | null }) {
         isOpen={!!poolForm}
         onClose={() => setPoolForm(null)}
         title={poolForm?.editing ? `Edit ${poolForm.editing.name}` : "Add funding pool"}
+        wide
       >
         {poolForm && (
-          <form onSubmit={savePool} className={adminStyles.form}>
+          <form onSubmit={savePool} className={`${adminStyles.form} ${styles.modalForm}`}>
             {error && <div className={adminStyles.error}>{error}</div>}
             <div className={adminStyles.formGroup}>
               <label htmlFor="pool-name">Name *</label>
@@ -682,6 +683,7 @@ export default function FundingPanel({ user }: { user: User | null }) {
         isOpen={!!purchaseForm}
         onClose={() => setPurchaseForm(null)}
         title={purchaseForm?.editing ? "Edit purchase" : "Log purchase"}
+        wide
       >
         {purchaseForm && (
           <>

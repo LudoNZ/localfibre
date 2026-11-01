@@ -314,6 +314,14 @@
   margin: 0;
 }
 
+/* Forms inside pop-ups: the window already has padding, so no second box */
+.modalForm {
+  padding: 0;
+  margin-bottom: 0;
+  background: none;
+  border-radius: 0;
+}
+
 /* Header, view switch and segmented controls */
 .headerActions {
   display: flex;
@@ -327,6 +335,7 @@
 }
 
 .segmented {
+  max-width: 100%;
   display: inline-flex;
   flex-wrap: wrap;
   gap: 2px;
@@ -381,6 +390,8 @@
 }
 
 .chip {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   background: var(--color-background);
   border: 1px solid var(--color-accent-clay);
   border-radius: 20px;
@@ -461,6 +472,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.25rem var(--spacing-sm);
+}
+
+.checkItem span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .checkItem {

@@ -105,6 +105,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  /* Let fields shrink inside grid rows instead of spilling out of the form */
+  min-width: 0;
 }
 
 .formGroup label {
@@ -124,6 +126,13 @@
   background: var(--color-background);
   color: var(--color-body);
   transition: border-color 0.2s ease;
+  width: 100%;
+  min-width: 0;
+}
+
+.formGroup input[type="checkbox"],
+.formGroup input[type="radio"] {
+  width: auto;
 }
 
 .formGroup input:focus,
@@ -138,10 +147,11 @@
   min-height: 100px;
 }
 
+/* Up to three side by side, dropping to fewer columns when there isn't room */
 .formRow {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-sm) var(--spacing-md);
 }
 
 .locationSelect select {
