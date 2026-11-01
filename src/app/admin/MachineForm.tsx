@@ -273,7 +273,9 @@ export default function MachineForm({
           model={form.model}
           typeId={form.typeId}
           onChange={chooseBrandModel}
-          onRenamed={(brandName, modelName) => setForm((f) => ({ ...f, brand: brandName, model: modelName }))}
+          onRenamed={(brandName, modelName, newTypeId) =>
+            setForm((f) => ({ ...f, brand: brandName, model: modelName, typeId: newTypeId || f.typeId }))
+          }
         />
       </div>
 

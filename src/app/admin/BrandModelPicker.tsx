@@ -17,7 +17,7 @@ interface BrandModelPickerProps {
   typeId: string;
   onChange: (brand: string, model: string) => void;
   // A rename of the brand or model this machine already uses
-  onRenamed: (brand: string, model: string) => void;
+  onRenamed: (brand: string, model: string, typeId?: string) => void;
 }
 
 /** "+ Add ..." box at the bottom of each list; stays open so several can be added in a row */
@@ -84,8 +84,8 @@ function AddSection({
         <p className={styles.hint}>&ldquo;{duplicate}&rdquo; is already in the list.</p>
       ) : (
         <p className={styles.hint}>
-          Add as many as you like, then tap one above to pick it. Use ✎ to fix a name; machines already logged
-          under it are updated too.
+          Add as many as you like, then tap one above to pick it. Use ✎ to fix a name (or a model&rsquo;s type);
+          machines already logged under it are updated too.
         </p>
       )}
     </div>
@@ -99,25 +99,31 @@ function Tile({
   selected,
   onPick,
   onRename,
+  types,
+  typeId = "",
 }: {
   name: string;
   meta: string;
   selected: boolean;
   onPick: () => void;
-  onRename: (name: string) => Promise<void>;
+  onRename: (name: string, typeId: string) => Promise<void>;
+  // Models also get a type choice in their edit box
+  types?: MachineLibrary["types"];
+  typeId?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
+  const [draftType, setDraftType] = useState(typeId);
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    if (!draft.trim() || draft.trim() === name) {
+    if (!draft.trim() || (draft.trim() === name && draftType === typeId)) {
       setEditing(false);
       return;
     }
     setSaving(true);
     try {
-      await onRename(draft.trim());
+      await onRename(draft.trim(), draftType);
       setEditing(false);
     } catch {
       // The picker shows the error; leave the box open to fix it
@@ -147,6 +153,22 @@ function Tile({
           aria-label={`Rename ${name}`}
           autoFocus
         />
+        {types && (
+          <div className={styles.chips} role="radiogroup" aria-label={`Type of ${name}`}>
+            {types.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                aria-checked={draftType === t.id}
+                className={`${styles.chip} ${draftType === t.id ? styles.chipActive : ""}`}
+                onClick={() => setDraftType(t.id)}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        )}
         <div className={styles.tileEditActions}>
           <button type="button" className="btn-primary" onClick={save} disabled={!draft.trim() || saving}>
             {saving ? "Saving..." : "Save"}
@@ -175,10 +197,11 @@ function Tile({
         className={`${styles.tileRename} ${selected ? styles.tileRenameOnDark : ""}`}
         onClick={() => {
           setDraft(name);
+          setDraftType(typeId);
           setEditing(true);
         }}
-        aria-label={`Rename ${name}`}
-        title="Rename"
+        aria-label={`Edit ${name}`}
+        title="Edit"
       >
         ✎
       </button>
@@ -268,14 +291,14 @@ export default function BrandModelPicker({
       if (sameName(b.name, brand)) onRenamed(name, model);
     });
 
-  const renameModel = (b: MachineBrand, from: string, to: string) =>
+  const renameModel = (b: MachineBrand, from: string, to: string, newTypeId: string) =>
     withErrors(async () => {
       await api(`/api/machine-library/brands/${b.id}`, {
         method: "PUT",
-        body: JSON.stringify({ renameModel: { from, to } }),
+        body: JSON.stringify({ renameModel: { from, to, typeId: newTypeId } }),
       });
       await reloadLibrary();
-      if (sameName(b.name, brand) && sameName(from, model)) onRenamed(brand, to);
+      if (sameName(b.name, brand) && sameName(from, model)) onRenamed(brand, to, newTypeId);
     });
 
   const label = brand ? [brand, model].filter(Boolean).join(" · ") : "";
@@ -367,7 +390,9 @@ export default function BrandModelPicker({
                         }
                         selected={sameName(current.name, brand) && sameName(m.name, model)}
                         onPick={() => choose(current.name, m.name)}
-                        onRename={(name) => renameModel(current, m.name, name)}
+                        onRename={(name, newTypeId) => renameModel(current, m.name, name, newTypeId)}
+                        types={library.types}
+                        typeId={m.typeId}
                       />
                     </li>
                   ))}

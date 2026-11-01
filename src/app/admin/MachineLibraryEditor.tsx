@@ -243,7 +243,11 @@ export default function MachineLibraryEditor({ api, library, reloadLibrary }: Li
                         />
                         <select
                           value={model.typeId}
-                          onChange={(e) => updateModel(brand, index, { typeId: e.target.value })}
+                          onChange={(e) =>
+                            put(`/api/machine-library/brands/${brand.id}`, {
+                              renameModel: { from: model.name, to: model.name, typeId: e.target.value },
+                            })
+                          }
                           aria-label={`Type of ${model.name}`}
                         >
                           <option value="">No type</option>

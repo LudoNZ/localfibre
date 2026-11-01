@@ -6,8 +6,8 @@ import { MachineModel, dedupe, parseStringList, sameName } from "@/lib/sewingMac
 type Params = { params: Promise<{ id: string }> }
 
 /**
- * Rename a brand, rename one of its models ({ renameModel: { from, to } }), and/or replace
- * its list of models. Renames also update machines already logged under the old name.
+ * Rename a brand, edit one of its models ({ renameModel: { from, to, typeId? } }), and/or
+ * replace its list of models. Name and type changes also update machines already logged.
  */
 export async function PUT(request: NextRequest, { params }: Params) {
   const denied = await requireAdmin(request)
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const oldName: string = snap.data()?.name ?? ""
     const newName = (updates.name as string | undefined) ?? oldName
 
-    let modelRename: { from: string; to: string } | null = null
+    let modelRename: { from: string; to: string; typeId: string | null } | null = null
     if (body.renameModel && typeof body.renameModel === "object") {
       const from = typeof body.renameModel.from === "string" ? body.renameModel.from : ""
       const to = typeof body.renameModel.to === "string" ? body.renameModel.to.trim() : ""
@@ -64,8 +64,17 @@ export async function PUT(request: NextRequest, { params }: Params) {
       if (models.some((m) => m.name !== from && sameName(m.name, to))) {
         return NextResponse.json({ error: `${oldName} already has a "${to}" model` }, { status: 400 })
       }
-      updates.models = models.map((m) => (m.name === from ? { ...m, name: to } : m))
-      modelRename = { from, to }
+      let typeId: string | null = null
+      if (typeof body.renameModel.typeId === "string") {
+        typeId = body.renameModel.typeId
+        if (typeId && !(await db.collection("machineTypes").doc(typeId).get()).exists) {
+          return NextResponse.json({ error: "Machine type not found" }, { status: 400 })
+        }
+      }
+      updates.models = models.map((m) =>
+        m.name === from ? { ...m, name: to, ...(typeId !== null ? { typeId } : {}) } : m
+      )
+      modelRename = { from, to, typeId }
     }
 
     // Keep logged machines in step with the library so reports group them together
@@ -75,14 +84,25 @@ export async function PUT(request: NextRequest, { params }: Params) {
       const logged = await machines.where("brand", "==", oldName).get()
       logged.docs.forEach((doc) => machineUpdates.set(doc.id, { brand: newName }))
     }
-    if (modelRename && modelRename.from !== modelRename.to) {
-      const logged = await machines
-        .where("brand", "==", oldName)
-        .where("model", "==", modelRename.from)
-        .get()
-      logged.docs.forEach((doc) =>
-        machineUpdates.set(doc.id, { ...machineUpdates.get(doc.id), model: modelRename.to })
-      )
+    if (modelRename) {
+      const changes: Record<string, unknown> = {}
+      if (modelRename.from !== modelRename.to) changes.model = modelRename.to
+      if (modelRename.typeId !== null) {
+        const type = modelRename.typeId
+          ? await db.collection("machineTypes").doc(modelRename.typeId).get()
+          : null
+        changes.typeId = modelRename.typeId
+        changes.typeName = type?.data()?.name ?? ""
+      }
+      if (Object.keys(changes).length) {
+        const logged = await machines
+          .where("brand", "==", oldName)
+          .where("model", "==", modelRename.from)
+          .get()
+        logged.docs.forEach((doc) =>
+          machineUpdates.set(doc.id, { ...machineUpdates.get(doc.id), ...changes })
+        )
+      }
     }
 
     const batch = db.batch()
