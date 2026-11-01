@@ -165,6 +165,21 @@ export const MACHINE_DETAIL_FIELDS = [
   "notes",
 ] as const
 
+// ── Dates ────────────────────────────────────────────────────────────
+
+/**
+ * A yyyy-mm-dd day as a stored date. Midnight UTC is midday in New Zealand,
+ * so it shows as the same day there whatever the time of year.
+ */
+export function dayToDate(value: unknown): Date | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  const date = new Date(`${value}T00:00:00Z`)
+  return isNaN(date.getTime()) ? null : date
+}
+
+/** The local yyyy-mm-dd day of a stored date, for date inputs */
+export const isoToDay = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-CA") : "")
+
 /** 1-5, or null for anything else */
 export const parseCondition = (value: unknown) =>
   Number.isInteger(value) && (value as number) >= 1 && (value as number) <= 5 ? (value as number) : null

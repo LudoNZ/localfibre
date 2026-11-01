@@ -3,6 +3,7 @@ import { db, FieldValue } from "@/lib/firebaseAdmin"
 import { requireAdmin } from "@/lib/adminAuth"
 import {
   MACHINE_DETAIL_FIELDS,
+  dayToDate,
   isWorkshopStatus,
   parseCondition,
   parseServiceLog,
@@ -80,7 +81,8 @@ export async function POST(request: NextRequest) {
         recipient: null,
         assignedAt: null,
         repurposedAt: null,
-        createdAt: FieldValue.serverTimestamp(),
+        // A past date when logging machines that came in before this log existed
+        createdAt: dayToDate(body.createdAt) ?? FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       })
       return next

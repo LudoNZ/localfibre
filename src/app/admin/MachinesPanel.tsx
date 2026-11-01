@@ -11,6 +11,7 @@ import {
   SewingMachine,
   WorkshopStatus,
   isAwaitingParts,
+  isoToDay,
   machineLabel,
   machineReadyMailto,
   openServiceParts,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/sewingMachines";
 import { FundingPool, Purchase } from "@/lib/funding";
 import ServicePanel from "./ServiceModal";
+import { today } from "./csv";
 import AssignFields from "./AssignFields";
 import MachineForm from "./MachineForm";
 import MachineLibraryEditor from "./MachineLibraryEditor";
@@ -78,6 +80,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
   const [editing, setEditing] = useState<SewingMachine | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [servicingId, setServicingId] = useState<string | null>(null);
+  const [handingOver, setHandingOver] = useState<{ machine: SewingMachine; date: string } | null>(null);
 
   // Funding pools and purchases, for logging what servicing costs
   const [pools, setPools] = useState<FundingPool[]>([]);
@@ -171,7 +174,26 @@ export default function MachinesPanel({ user }: { user: User | null }) {
     }
   };
 
-  const runAction = async (machine: SewingMachine, action: "unassign" | "repurposed", confirmText: string) => {
+  const handOver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!handingOver) return;
+    setSaving(true);
+    setError("");
+    try {
+      await api(`/api/machines/${handingOver.machine.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action: "repurposed", date: handingOver.date }),
+      });
+      setHandingOver(null);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update machine");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const runAction = async (machine: SewingMachine, action: "unassign", confirmText: string) => {
     if (!confirm(confirmText)) return;
     setError("");
     try {
@@ -299,7 +321,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
         ))}
       </div>
 
-      {error && !formOpen && !assigning && <div className={adminStyles.error}>{error}</div>}
+      {error && !formOpen && !assigning && !handingOver && <div className={adminStyles.error}>{error}</div>}
 
       {loading ? (
         <p>Loading machines...</p>
@@ -466,13 +488,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
                             )}
                             <button
                               className="btn-secondary"
-                              onClick={() =>
-                                runAction(
-                                  machine,
-                                  "repurposed",
-                                  `Mark ${machineLabel(machine)} as handed over to ${machine.recipient!.fullName}?`
-                                )
-                              }
+                              onClick={() => setHandingOver({ machine, date: today() })}
                             >
                               Mark handed over
                             </button>
@@ -544,6 +560,37 @@ export default function MachinesPanel({ user }: { user: User | null }) {
             await loadData();
           }}
         />
+      </EditModal>
+
+      {/* Hand over, on a chosen date */}
+      <EditModal
+        isOpen={!!handingOver}
+        onClose={() => setHandingOver(null)}
+        title={handingOver ? `Hand over ${machineLabel(handingOver.machine)}` : "Hand over"}
+      >
+        {handingOver && (
+          <form onSubmit={handOver} className={adminStyles.form}>
+            {error && <div className={adminStyles.error}>{error}</div>}
+            <p className={styles.hint}>
+              To <strong>{handingOver.machine.recipient?.fullName}</strong>. This adds it to the handed-over log.
+            </p>
+            <div className={adminStyles.formGroup}>
+              <label htmlFor="handover-date">Handed over on</label>
+              <input
+                id="handover-date"
+                type="date"
+                value={handingOver.date}
+                min={isoToDay(handingOver.machine.createdAt)}
+                max={today()}
+                onChange={(e) => setHandingOver((h) => (h ? { ...h, date: e.target.value } : h))}
+                required
+              />
+            </div>
+            <button type="submit" className="btn-primary" disabled={saving || !handingOver.date}>
+              {saving ? "Saving..." : "Mark handed over"}
+            </button>
+          </form>
+        )}
       </EditModal>
 
       {/* Faulty parts, purchases and service notes */}

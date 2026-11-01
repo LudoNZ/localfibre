@@ -12,4 +12,5 @@ export function downloadCsv(filename: string, header: string[], rows: unknown[][
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export const today = () => new Date().toISOString().slice(0, 10);
+// Local yyyy-mm-dd (a UTC date would still be yesterday during a New Zealand morning)
+export const today = () => new Date().toLocaleDateString("en-CA");

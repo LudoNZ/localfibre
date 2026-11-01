@@ -10,8 +10,10 @@ import {
   checklistFor,
   dedupe,
   isWorkshopStatus,
+  isoToDay,
   sameName,
 } from "@/lib/sewingMachines";
+import { today } from "./csv";
 import AssignFields from "./AssignFields";
 import BrandModelPicker from "./BrandModelPicker";
 import RemoveItemDialog, { RemoveItemTarget } from "./RemoveItemDialog";
@@ -105,6 +107,13 @@ export default function MachineForm({
   const [editingList, setEditingList] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [assign, setAssign] = useState<AssignChoice>({ mode: "none" });
+  // Editable so machines handed out before this log existed can be backdated
+  const initialDates = {
+    received: isoToDay(editing?.createdAt ?? null) || today(),
+    assigned: isoToDay(editing?.assignedAt ?? null) || today(),
+    handedOver: isoToDay(editing?.repurposedAt ?? null),
+  };
+  const [dates, setDates] = useState(initialDates);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -269,6 +278,9 @@ export default function MachineForm({
         notes: form.notes,
         photos: form.photos,
         ...(isHandedOver ? {} : { status: form.status }),
+        ...(!editing || dates.received !== initialDates.received ? { createdAt: dates.received } : {}),
+        ...(editing?.recipient && dates.assigned !== initialDates.assigned ? { assignedAt: dates.assigned } : {}),
+        ...(isHandedOver && dates.handedOver !== initialDates.handedOver ? { repurposedAt: dates.handedOver } : {}),
       };
       const saved = await api(editing ? `/api/machines/${editing.id}` : "/api/machines", {
         method: editing ? "PUT" : "POST",
@@ -288,6 +300,13 @@ export default function MachineForm({
             throw new Error(`Machine saved, but assigning failed: ${err.message}`);
           }
         );
+        // Assigning stamps today; keep an earlier date if one was entered
+        if (dates.assigned !== today()) {
+          await api(`/api/machines/${machineId}`, {
+            method: "PUT",
+            body: JSON.stringify({ assignedAt: dates.assigned }),
+          });
+        }
       }
 
       if (libraryChanged) await reloadLibrary();
@@ -576,6 +595,56 @@ export default function MachineForm({
           />
         </div>
       )}
+
+      <div className={adminStyles.formGroup}>
+        <span className={styles.label}>Dates</span>
+        <div className={adminStyles.formRow}>
+          <div className={adminStyles.formGroup}>
+            <label htmlFor="machine-received">Received</label>
+            <input
+              id="machine-received"
+              type="date"
+              value={dates.received}
+              max={today()}
+              onChange={(e) => setDates((d) => ({ ...d, received: e.target.value }))}
+              required
+            />
+          </div>
+          {(editing?.recipient || (canAssign && assign.mode !== "none")) && (
+            <div className={adminStyles.formGroup}>
+              <label htmlFor="machine-assigned">Assigned</label>
+              <input
+                id="machine-assigned"
+                type="date"
+                value={dates.assigned}
+                max={today()}
+                onChange={(e) => setDates((d) => ({ ...d, assigned: e.target.value }))}
+                required
+              />
+            </div>
+          )}
+          {isHandedOver && (
+            <div className={adminStyles.formGroup}>
+              <label htmlFor="machine-handed-over">Handed over</label>
+              <input
+                id="machine-handed-over"
+                type="date"
+                value={dates.handedOver}
+                min={dates.received}
+                max={today()}
+                onChange={(e) => setDates((d) => ({ ...d, handedOver: e.target.value }))}
+                required
+              />
+            </div>
+          )}
+        </div>
+        {!editing && (
+          <p className={styles.hint}>
+            Logging an older machine? Set the date it came in, then assign it and use &ldquo;Mark handed over&rdquo; to
+            choose when it went out.
+          </p>
+        )}
+      </div>
 
       <button type="submit" className="btn-primary" disabled={uploading || saving}>
         {saving ? "Saving..." : editing ? "Save Changes" : "Add Machine"}

@@ -5,6 +5,7 @@ import {
   MACHINE_DETAIL_FIELDS,
   MachineRecipient,
   OPEN_STATUSES,
+  dayToDate,
   isWorkshopStatus,
   parseCondition,
   parseServiceLog,
@@ -42,6 +43,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Brand is required" }, { status: 400 })
     }
 
+    // Dates can be corrected, e.g. when logging machines handed out in past years
+    const dates: Record<string, Date> = {}
+    for (const field of ["createdAt", "assignedAt", "repurposedAt"] as const) {
+      if (body[field] === undefined) continue
+      const date = dayToDate(body[field])
+      if (!date) return NextResponse.json({ error: "Dates must be valid days" }, { status: 400 })
+      if (date.getTime() > Date.now() + 24 * 60 * 60 * 1000) {
+        return NextResponse.json({ error: "Dates can't be in the future" }, { status: 400 })
+      }
+      dates[field] = date
+    }
+
     const machineRef = db.collection("sewingMachines").doc(id)
 
     await db.runTransaction(async (tx) => {
@@ -54,6 +67,20 @@ export async function PUT(request: NextRequest, { params }: Params) {
       ) {
         throw new ActionError("Handed-over machines keep their service record as it was")
       }
+
+      const current = machine.data()!
+      if (dates.assignedAt && !current.recipient) {
+        throw new ActionError("Assign this machine before setting its assigned date")
+      }
+      if (dates.repurposedAt && current.status !== "repurposed") {
+        throw new ActionError("Only handed-over machines have a handed-over date")
+      }
+      const received = dates.createdAt ?? current.createdAt?.toDate?.()
+      const handedOver = dates.repurposedAt ?? current.repurposedAt?.toDate?.()
+      if (received && handedOver && handedOver < received) {
+        throw new ActionError("The handed-over date is before the machine was received")
+      }
+      Object.assign(updates, dates)
 
       // Handed-over machines are part of the permanent log
       if (isWorkshopStatus(body.status)) {
@@ -83,7 +110,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   try {
     const { id } = await params
-    const { action, applicationId, manual } = await request.json()
+    const { action, applicationId, manual, date } = await request.json()
     const machineRef = db.collection("sewingMachines").doc(id)
 
     await db.runTransaction(async (tx) => {
@@ -135,10 +162,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
             area: text(manual?.area),
             groupName: text(manual?.groupName) || null,
           }
+          // Contact details are optional: older handovers may only have a name
           if (!recipient.fullName) throw new ActionError("Enter the person's name")
-          if (!recipient.email && !recipient.phone) {
-            throw new ActionError("Enter a phone number or email so they can be contacted")
-          }
         }
 
         tx.update(machineRef, { recipient, assignedAt: now, updatedAt: now })
@@ -164,7 +189,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         }
         if (machine.status === "repurposed") throw new ActionError("Already handed over")
 
-        tx.update(machineRef, { status: "repurposed", repurposedAt: now, updatedAt: now })
+        // A past date when logging machines handed out before they were tracked here
+        const handedOverAt = date ? dayToDate(date) : null
+        if (date && !handedOverAt) throw new ActionError("Choose a valid handover date")
+        if (handedOverAt && handedOverAt.getTime() > Date.now() + 24 * 60 * 60 * 1000) {
+          throw new ActionError("The handover date can't be in the future")
+        }
+
+        tx.update(machineRef, { status: "repurposed", repurposedAt: handedOverAt ?? now, updatedAt: now })
         if (machine.recipient?.applicationId) {
           const appRef = db.collection("sewingMachineApplications").doc(machine.recipient.applicationId)
           tx.update(appRef, { status: "collected", updatedAt: now })
