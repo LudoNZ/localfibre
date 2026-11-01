@@ -14,21 +14,36 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
 
 // ── Machine inventory ────────────────────────────────────────────────
 
-export const MACHINE_STATUSES = ["servicing", "ready", "assigned", "repurposed"] as const
+export const MACHINE_STATUSES = ["incoming", "servicing", "ready", "repurposed"] as const
 
 export type MachineStatus = (typeof MACHINE_STATUSES)[number]
 
+// Statuses an admin can move a machine between before it's handed over
+export const WORKSHOP_STATUSES = ["incoming", "servicing", "ready"] as const
+
+export type WorkshopStatus = (typeof WORKSHOP_STATUSES)[number]
+
 export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
+  incoming: "Incoming",
   servicing: "Being serviced",
   ready: "Ready to go",
-  assigned: "Assigned",
-  repurposed: "Repurposed",
+  repurposed: "Handed over",
 }
 
-export const MACHINE_CONDITIONS = ["Excellent", "Good", "Fair", "Needs work"] as const
+export const MACHINE_CONDITION_LABELS: Record<number, string> = {
+  1: "Needs major work",
+  2: "Needs work",
+  3: "Fair",
+  4: "Good",
+  5: "Like new",
+}
+
+export const isWorkshopStatus = (value: unknown): value is WorkshopStatus =>
+  WORKSHOP_STATUSES.includes(value as WorkshopStatus)
 
 export interface MachineRecipient {
-  applicationId: string
+  // null when the person was entered by hand rather than picked from the waiting list
+  applicationId: string | null
   fullName: string
   email: string
   phone: string
@@ -39,11 +54,13 @@ export interface MachineRecipient {
 export interface SewingMachine {
   id: string
   number: number
+  typeId: string
+  typeName: string
   brand: string
   model: string
   serialNumber: string
-  condition: string
-  accessories: string
+  condition: number | null
+  comesWith: string[]
   notes: string
   photos: string[]
   status: MachineStatus
@@ -53,15 +70,69 @@ export interface SewingMachine {
   repurposedAt: string | null
 }
 
-// Fields an admin can edit directly on a machine
+// Free-text fields an admin can edit directly on a machine
 export const MACHINE_DETAIL_FIELDS = [
+  "typeId",
+  "typeName",
   "brand",
   "model",
   "serialNumber",
-  "condition",
-  "accessories",
   "notes",
 ] as const
+
+/** 1-5, or null for anything else */
+export const parseCondition = (value: unknown) =>
+  Number.isInteger(value) && (value as number) >= 1 && (value as number) <= 5 ? (value as number) : null
+
+export const parseStringList = (value: unknown) =>
+  Array.isArray(value)
+    ? dedupe(value.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean))
+    : []
+
+// ── Machine library (brands, models, types) ───────────────────────────
+
+export interface MachineType {
+  id: string
+  name: string
+  comesWith: string[]
+  order: number
+}
+
+export interface MachineModel {
+  name: string
+  typeId: string
+  // Comes-with items only this model has, on top of its type's list
+  extras: string[]
+}
+
+export interface MachineBrand {
+  id: string
+  name: string
+  models: MachineModel[]
+}
+
+export const DEFAULT_MACHINE_TYPES: Omit<MachineType, "id">[] = [
+  { name: "Sewing machine", comesWith: ["Foot pedal", "Power cord", "Bobbins", "Cover"], order: 0 },
+  { name: "Overlocker", comesWith: ["Foot pedal", "Power cord", "Cover", "Tweezers", "Thread nets"], order: 1 },
+]
+
+/** Drops repeats, ignoring case, keeping the first spelling */
+export function dedupe(items: string[]) {
+  const seen = new Set<string>()
+  return items.filter((item) => {
+    const key = item.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+export const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
+
+/** The comes-with checklist for a type, plus any extras for that brand's model */
+export function checklistFor(type: MachineType | undefined, model: MachineModel | undefined) {
+  return dedupe([...(type?.comesWith ?? []), ...(model?.extras ?? [])])
+}
 
 export function machineLabel(machine: Pick<SewingMachine, "number" | "brand" | "model">) {
   return `#${machine.number} ${[machine.brand, machine.model].filter(Boolean).join(" ")}`.trim()
@@ -72,9 +143,9 @@ export function machineReadyMailto(machine: SewingMachine, recipient: MachineRec
   const firstName = recipient.fullName.split(/\s+/)[0]
   const details = [
     `Machine: ${machineLabel(machine)}`,
-    machine.condition && `Condition: ${machine.condition}`,
+    machine.condition && `Condition: ${machine.condition}/5 (${MACHINE_CONDITION_LABELS[machine.condition]})`,
     machine.serialNumber && `Serial number: ${machine.serialNumber}`,
-    machine.accessories && `Comes with: ${machine.accessories}`,
+    machine.comesWith?.length && `Comes with: ${machine.comesWith.join(", ")}`,
     machine.notes && `Notes: ${machine.notes}`,
   ].filter(Boolean)
 

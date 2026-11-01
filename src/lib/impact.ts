@@ -27,7 +27,7 @@ export async function getImpactNumbers(): Promise<ImpactNumbers> {
 
   const [machinesRepurposed, machinesInWorkshop, peopleWaiting, eventsHeld] = await Promise.all([
     count(machines.where("status", "==", "repurposed")),
-    count(machines.where("status", "in", ["servicing", "ready", "assigned"])),
+    count(machines.where("status", "in", ["servicing", "ready"])),
     count(db.collection("sewingMachineApplications").where("status", "in", OPEN_STATUSES)),
     count(db.collection("events").where("isUpcoming", "==", false)),
   ])

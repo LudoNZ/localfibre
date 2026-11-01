@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import styles from "./EditModal.module.css";
 
 interface EditModalProps {
@@ -10,29 +10,36 @@ interface EditModalProps {
   children: React.ReactNode;
 }
 
+// Open modals, newest last, so a modal opened from another one behaves as the top layer
+const openModals: object[] = [];
+
 export default function EditModal({ isOpen, onClose, title, children }: EditModalProps) {
+  const id = useRef({});
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
+    if (!isOpen) return;
+    const self = id.current;
+    openModals.push(self);
+    document.body.style.overflow = "hidden";
+
+    // Escape only closes the modal on top
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
+      if (e.key === "Escape" && openModals[openModals.length - 1] === self) {
+        onCloseRef.current();
       }
     };
-    if (isOpen) {
-      window.addEventListener("keydown", handleEscape);
-    }
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      openModals.splice(openModals.indexOf(self), 1);
+      if (openModals.length === 0) document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

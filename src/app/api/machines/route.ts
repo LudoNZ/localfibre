@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db, FieldValue } from "@/lib/firebaseAdmin"
 import { requireAdmin } from "@/lib/adminAuth"
-import { MACHINE_DETAIL_FIELDS, MachineStatus } from "@/lib/sewingMachines"
+import {
+  MACHINE_DETAIL_FIELDS,
+  isWorkshopStatus,
+  parseCondition,
+  parseStringList,
+} from "@/lib/sewingMachines"
 
 const toIso = (value: unknown) =>
   (value as { toDate?: () => Date } | null)?.toDate?.()?.toISOString() ?? null
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
     const photos = Array.isArray(body.photos)
       ? body.photos.filter((url: unknown) => typeof url === "string")
       : []
-    const status: MachineStatus = body.status === "ready" ? "ready" : "servicing"
+    const status = isWorkshopStatus(body.status) ? body.status : "incoming"
 
     if (!details.brand) {
       return NextResponse.json({ error: "Brand is required" }, { status: 400 })
@@ -63,6 +68,8 @@ export async function POST(request: NextRequest) {
       tx.set(counterRef, { lastNumber: next }, { merge: true })
       tx.set(machineRef, {
         ...details,
+        condition: parseCondition(body.condition),
+        comesWith: parseStringList(body.comesWith),
         number: next,
         photos,
         status,
