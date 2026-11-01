@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
-import { optimiseImage } from "@/lib/imageUpload";
 import {
   MACHINE_CONDITION_LABELS,
   MACHINE_STATUS_LABELS,
@@ -17,6 +14,7 @@ import {
 } from "@/lib/sewingMachines";
 import AssignFields from "./AssignFields";
 import BrandModelPicker from "./BrandModelPicker";
+import RemoveItemDialog, { RemoveItemTarget } from "./RemoveItemDialog";
 import {
   AdminApi,
   AssignChoice,
@@ -25,6 +23,7 @@ import {
   assignBody,
   findBrand,
   findModel,
+  uploadMachinePhoto,
 } from "./machineShared";
 import adminStyles from "./Admin.module.css";
 import styles from "./MachinesPanel.module.css";
@@ -34,6 +33,8 @@ interface MachineFormProps {
   library: MachineLibrary;
   reloadLibrary: () => Promise<void>;
   editing: SewingMachine | null;
+  // All logged machines, to say which ones have an item ticked before it's removed
+  machines: SewingMachine[];
   assignable: WaitingApplication[];
   queueNumbers: Map<string, number>;
   onSaved: () => Promise<void>;
@@ -41,7 +42,9 @@ interface MachineFormProps {
 
 // Where an added comes-with item is remembered: only here, for the model, or for the whole type
 type ItemScope = "machine" | "model" | "type";
-type CustomItem = { name: string; scope: ItemScope };
+
+const withoutKey = <T,>(record: Record<string, T>, key: string) =>
+  Object.fromEntries(Object.entries(record).filter(([k]) => k !== key));
 
 type FormState = {
   typeId: string;
@@ -88,13 +91,18 @@ export default function MachineForm({
   library,
   reloadLibrary,
   editing,
+  machines,
   assignable,
   queueNumbers,
   onSaved,
 }: MachineFormProps) {
   const [form, setForm] = useState(() => initialForm(editing, library));
-  // Items added by hand on this machine, and where each one should be remembered
-  const [customItems, setCustomItems] = useState<CustomItem[]>([]);
+  // Items added by hand on this machine
+  const [addedItems, setAddedItems] = useState<string[]>([]);
+  // Changes to where items are remembered, keyed by lower-case name; saved with the machine
+  const [scopeEdits, setScopeEdits] = useState<Record<string, ItemScope>>({});
+  const [removing, setRemoving] = useState<RemoveItemTarget | null>(null);
+  const [editingList, setEditingList] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [assign, setAssign] = useState<AssignChoice>({ mode: "none" });
   const [uploading, setUploading] = useState(false);
@@ -107,12 +115,25 @@ export default function MachineForm({
   const isHandedOver = editing?.status === "repurposed";
   const canAssign = !editing?.recipient && !isHandedOver;
 
-  // Everything that could be ticked: type list, model extras, and anything already ticked
-  const checklist = dedupe([
-    ...checklistFor(type, libraryModel),
-    ...customItems.map((c) => c.name),
-    ...form.comesWith,
-  ]);
+  const keyOf = (item: string) => item.trim().toLowerCase();
+
+  // Where an item is remembered now: the type's default list, this model's extras, or nowhere
+  const originOf = (item: string): ItemScope =>
+    type?.comesWith.some((x) => sameName(x, item))
+      ? "type"
+      : libraryModel?.extras.some((x) => sameName(x, item))
+        ? "model"
+        : "machine";
+
+  const scopeOf = (item: string): ItemScope => {
+    const edit = scopeEdits[keyOf(item)];
+    // Without a model, "every Brand Model" has nothing to attach to
+    if (!edit || (edit === "model" && !form.model.trim())) return originOf(item);
+    return edit;
+  };
+
+  // Everything that could be ticked: type list, model extras, added items and anything already ticked
+  const checklist = dedupe([...checklistFor(type, libraryModel), ...addedItems, ...form.comesWith]);
   const isTicked = (item: string) => form.comesWith.some((c) => sameName(c, item));
 
   // A model from the library brings its type with it
@@ -132,24 +153,40 @@ export default function MachineForm({
     const item = newItem.trim();
     if (!item) return;
     if (!checklist.some((c) => sameName(c, item))) {
-      setCustomItems((list) => [...list, { name: item, scope: "machine" }]);
+      setAddedItems((list) => [...list, item]);
     }
     setForm((f) => ({ ...f, comesWith: dedupe([...f.comesWith, item]) }));
     setNewItem("");
   };
 
-  const setItemScope = (name: string, scope: ItemScope) =>
-    setCustomItems((list) => list.map((c) => (c.name === name ? { ...c, scope } : c)));
+  const setItemScope = (item: string, scope: ItemScope) =>
+    setScopeEdits((edits) => ({ ...edits, [keyOf(item)]: scope }));
 
-  const removeCustomItem = (name: string) => {
-    setCustomItems((list) => list.filter((c) => c.name !== name));
-    setForm((f) => ({ ...f, comesWith: f.comesWith.filter((c) => !sameName(c, name)) }));
+  // One-off items just come off this machine; library items go through the remove prompt
+  const removeItem = (item: string) => {
+    const origin = originOf(item);
+    if (origin === "type" && type) {
+      setRemoving({ item: type.comesWith.find((c) => sameName(c, item)) ?? item, typeId: type.id });
+    } else if (origin === "model" && brand && libraryModel) {
+      setRemoving({
+        item: libraryModel.extras.find((c) => sameName(c, item)) ?? item,
+        brandId: brand.id,
+        model: libraryModel.name,
+      });
+    } else {
+      setAddedItems((list) => list.filter((c) => !sameName(c, item)));
+      setScopeEdits((edits) => withoutKey(edits, keyOf(item)));
+      setForm((f) => ({ ...f, comesWith: f.comesWith.filter((c) => !sameName(c, item)) }));
+    }
   };
 
-  // Without a model, "every Brand Model" has nothing to attach to
-  const scopeOf = (item: CustomItem): ItemScope =>
-    item.scope === "model" && !form.model.trim() ? "machine" : item.scope;
-  const itemsFor = (scope: ItemScope) => customItems.filter((c) => scopeOf(c) === scope).map((c) => c.name);
+  /** A library list after this form's changes: drop moved/removed items, add ones moved in */
+  const nextList = (current: string[], scope: ItemScope) =>
+    dedupe([
+      ...current.filter((item) => scopeOf(item) === scope),
+      ...checklist.filter((item) => scopeOf(item) === scope),
+    ]);
+  const sameList = (a: string[], b: string[]) => a.join("\n") === b.join("\n");
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -158,27 +195,10 @@ export default function MachineForm({
     setUploading(true);
     setError("");
     try {
-      const urls = await Promise.all(
-        files.map(async (file) => {
-          // Shrink phone photos before upload so pages and emails stay quick
-          const { variants } = await optimiseImage(file, { widths: [1600] });
-          const { blob, ext } = variants[variants.length - 1];
-          const safeName = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9-]/g, "_");
-          const storageRef = ref(storage, `sewingMachines/${Date.now()}-${safeName}.${ext}`);
-          await uploadBytes(storageRef, blob, { contentType: blob.type });
-          return getDownloadURL(storageRef);
-        })
-      );
+      const urls = await Promise.all(files.map((file) => uploadMachinePhoto(api, file)));
       setForm((f) => ({ ...f, photos: [...f.photos, ...urls] }));
     } catch (err) {
-      const code = (err as { code?: string }).code;
-      setError(
-        code === "storage/unauthorized"
-          ? "Photo upload blocked by Firebase Storage permissions. You can still save the machine without photos."
-          : err instanceof Error
-            ? err.message
-            : "Failed to upload photo"
-      );
+      setError(err instanceof Error ? err.message : "Failed to upload photo");
     } finally {
       setUploading(false);
     }
@@ -191,12 +211,12 @@ export default function MachineForm({
     if (!brandName) return false;
 
     let changed = false;
-    // Items added to the type's default list, for every machine of that type
-    const forType = itemsFor("type");
-    if (type && forType.length) {
+    // The type's default list, for every machine of that type
+    const typeList = type ? nextList(type.comesWith, "type") : [];
+    if (type && !sameList(typeList, type.comesWith)) {
       await api(`/api/machine-library/types/${type.id}`, {
         method: "PUT",
-        body: JSON.stringify({ comesWith: dedupe([...type.comesWith, ...forType]) }),
+        body: JSON.stringify({ comesWith: typeList }),
       });
       changed = true;
     }
@@ -213,10 +233,9 @@ export default function MachineForm({
     if (!modelName) return changed;
 
     const existing = findModel(target, modelName);
-    const extras = dedupe([...(existing?.extras ?? []), ...itemsFor("model")]);
+    const extras = nextList(existing?.extras ?? [], "model");
     const typeId = existing?.typeId || form.typeId;
-    const needsUpdate =
-      !existing || extras.length !== existing.extras.length || typeId !== existing.typeId;
+    const needsUpdate = !existing || !sameList(extras, existing.extras) || typeId !== existing.typeId;
     if (!needsUpdate) return changed;
 
     const models = existing
@@ -369,13 +388,23 @@ export default function MachineForm({
         <div className={styles.labelRow}>
           <span className={styles.label}>Comes with</span>
           {checklist.length > 0 && (
-            <button
-              type="button"
-              className={styles.textButton}
-              onClick={() => setForm((f) => ({ ...f, comesWith: checklist }))}
-            >
-              Tick all
-            </button>
+            <span className={styles.labelActions}>
+              <button
+                type="button"
+                className={styles.textButton}
+                onClick={() => setForm((f) => ({ ...f, comesWith: checklist }))}
+              >
+                Tick all
+              </button>
+              <button
+                type="button"
+                className={styles.textButton}
+                aria-expanded={editingList}
+                onClick={() => setEditingList((v) => !v)}
+              >
+                {editingList ? "Done editing" : "Edit list"}
+              </button>
+            </span>
           )}
         </div>
         {checklist.length > 0 ? (
@@ -413,11 +442,13 @@ export default function MachineForm({
             Add
           </button>
         </div>
-        {customItems.length > 0 && (
+        {(editingList || addedItems.length > 0) && (
           <div className={styles.customItems}>
-            <p className={styles.customItemsTitle}>Added items: where should they be saved?</p>
+            <p className={styles.customItemsTitle}>
+              {editingList ? "Edit the list: where is each item kept?" : "Added items: where should they be saved?"}
+            </p>
             <ul>
-              {customItems.map((item) => {
+              {(editingList ? checklist : addedItems).map((item) => {
                 const scopes: { id: ItemScope; label: string }[] = [
                   { id: "machine", label: "Just this machine" },
                   ...(form.model.trim()
@@ -425,20 +456,25 @@ export default function MachineForm({
                     : []),
                   ...(type ? [{ id: "type" as const, label: `Default for all ${type.name.toLowerCase()}s` }] : []),
                 ];
+                const origin = originOf(item);
                 return (
-                  <li key={item.name} className={styles.customItem}>
+                  <li key={item} className={styles.customItem}>
                     <div className={styles.customItemHead}>
-                      <strong>{item.name}</strong>
+                      <strong>{item}</strong>
                       <button
                         type="button"
                         className={styles.textButton}
-                        onClick={() => removeCustomItem(item.name)}
-                        aria-label={`Remove ${item.name}`}
+                        onClick={() => removeItem(item)}
+                        aria-label={`Remove ${item}`}
                       >
-                        Remove
+                        {origin === "type"
+                          ? "Remove from default list"
+                          : origin === "model"
+                            ? `Remove from ${modelLabel}`
+                            : "Remove"}
                       </button>
                     </div>
-                    <div className={styles.segmented} role="radiogroup" aria-label={`Save ${item.name} for`}>
+                    <div className={styles.segmented} role="radiogroup" aria-label={`Keep ${item} for`}>
                       {scopes.map(({ id, label }) => (
                         <button
                           key={id}
@@ -446,7 +482,7 @@ export default function MachineForm({
                           role="radio"
                           aria-checked={scopeOf(item) === id}
                           className={scopeOf(item) === id ? styles.segmentActive : undefined}
-                          onClick={() => setItemScope(item.name, id)}
+                          onClick={() => setItemScope(item, id)}
                         >
                           {label}
                         </button>
@@ -456,7 +492,10 @@ export default function MachineForm({
                 );
               })}
             </ul>
-            <p className={styles.hint}>Library changes are saved with the machine.</p>
+            <p className={styles.hint}>
+              Moves between lists are saved with the machine; removing from a list happens straight away.
+              Machines already logged keep what was ticked.
+            </p>
           </div>
         )}
       </div>
@@ -541,6 +580,18 @@ export default function MachineForm({
       <button type="submit" className="btn-primary" disabled={uploading || saving}>
         {saving ? "Saving..." : editing ? "Save Changes" : "Add Machine"}
       </button>
+
+      <RemoveItemDialog
+        api={api}
+        library={library}
+        machines={machines}
+        target={removing}
+        onClose={() => setRemoving(null)}
+        onRemoved={async () => {
+          if (removing) setScopeEdits((edits) => withoutKey(edits, keyOf(removing.item)));
+          await reloadLibrary();
+        }}
+      />
     </form>
   );
 }

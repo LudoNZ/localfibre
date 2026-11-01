@@ -109,6 +109,11 @@
   color: var(--color-heading);
 }
 
+.awaiting {
+  background: rgba(224, 165, 38, 0.3);
+  color: var(--color-body);
+}
+
 .repurposed {
   background: var(--color-heading);
   color: white;
@@ -359,6 +364,11 @@
   gap: var(--spacing-xs);
 }
 
+.labelActions {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
 .labelRow .textButton {
   padding: 0.2rem 0.4rem;
   min-height: 0;
@@ -565,6 +575,14 @@
   flex: 1 1 160px;
   min-width: 0;
   font-weight: 600;
+}
+
+.tagEditorLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
 }
 
 .tagEditor {
@@ -1000,6 +1018,300 @@
   min-height: 0;
 }
 
+/* Remove item prompt */
+.removeDialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.removeDialog > p {
+  margin: 0;
+}
+
+.removeChoices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.removeActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* Servicing */
+.historyLine {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: 0;
+  background: var(--color-background);
+  border-left: 3px solid var(--color-accent-clay);
+  border-radius: 8px;
+  color: var(--color-body);
+  font-size: 0.92rem;
+  text-align: left;
+}
+
+.service {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.serviceSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.service input,
+.service select {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-accent-clay);
+  border-radius: 8px;
+  background: var(--color-background);
+  font: inherit;
+  color: var(--color-body);
+  min-width: 0;
+}
+
+.saveState {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.chipProblem {
+  background: rgba(224, 165, 38, 0.35);
+  border-color: var(--mustard, #e0a526);
+  font-weight: 600;
+}
+
+.partList,
+.purchaseList,
+.noteList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.partRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 10px;
+  background: var(--color-background-soft);
+  border-left: 4px solid var(--color-accent-clay);
+}
+
+.partRow .segmented {
+  margin-bottom: 0;
+  align-self: flex-start;
+}
+
+.partRow .segmented button {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.partRow p {
+  margin: 0;
+}
+
+.part_problem {
+  border-left-color: var(--rust);
+}
+
+.part_waiting {
+  border-left-color: var(--mustard, #e0a526);
+}
+
+.part_fixed,
+.part_replaced {
+  border-left-color: var(--olive, #5f6b2d);
+}
+
+.inlineInput {
+  width: 100%;
+}
+
+.addPart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.addPart .segmented {
+  margin-bottom: 0;
+  align-self: flex-start;
+}
+
+.purchaseItem,
+.noteItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 10px;
+  background: var(--color-background-soft);
+}
+
+.purchaseItem > div:first-child,
+.noteItem > div:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.purchaseActions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.purchaseActions .textButton {
+  padding: 0.3rem 0.5rem;
+  min-height: 0;
+}
+
+.missingReceipt {
+  font-size: 0.8rem;
+  color: var(--rust);
+  padding: 0 0.5rem;
+}
+
+.noteText {
+  white-space: pre-wrap;
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  border: 1px dashed var(--color-accent-clay);
+  border-radius: 10px;
+}
+
+.noteFormRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 0.7fr auto;
+  gap: var(--spacing-xs);
+}
+
+.noteFormRow :global(.btn-secondary) {
+  padding: 0.5rem 1rem;
+}
+
+.noteFormRow :global(.btn-secondary:disabled) {
+  opacity: 0.5;
+}
+
+.receiptRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.receiptRow .textButton {
+  padding-left: 0;
+}
+
+.overBudget {
+  color: var(--rust);
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* Funding */
+.poolList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.poolCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-background-soft);
+  border-radius: 12px;
+}
+
+.poolCard p {
+  margin: 0;
+}
+
+.poolInactive {
+  opacity: 0.65;
+}
+
+.poolBar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--color-background);
+  border: 1px solid var(--color-accent-clay);
+  overflow: hidden;
+}
+
+.poolBar span {
+  display: block;
+  height: 100%;
+  background: var(--olive, #5f6b2d);
+}
+
+.poolBar .poolBarOver {
+  background: var(--rust);
+}
+
+.poolNumbers {
+  font-size: 0.92rem;
+}
+
+.purchaseFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.purchaseFilters select,
+.reportSelect {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-accent-clay);
+  border-radius: 8px;
+  background: var(--color-background);
+  font: inherit;
+  color: var(--color-body);
+}
+
+.purchaseFilters :global(*) {
+  margin-bottom: 0;
+}
+
+.owed {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--rust);
+}
+
+.deletePurchase {
+  margin-top: var(--spacing-sm);
+}
+
 @media (max-width: 768px) {
   .stats {
     gap: var(--spacing-xs);
@@ -1030,6 +1342,19 @@
 
   .machineActions :global(.btn-primary) {
     flex: 1 1 100%;
+  }
+
+  .noteFormRow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .purchaseItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .purchaseActions {
+    flex-wrap: wrap;
   }
 
   .monthLabel {

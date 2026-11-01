@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db, FieldValue } from "@/lib/firebaseAdmin"
 import { requireAdmin } from "@/lib/adminAuth"
-import { DEFAULT_MACHINE_TYPES, parseStringList, sameName } from "@/lib/sewingMachines"
+import {
+  DEFAULT_MACHINE_TYPES,
+  DEFAULT_SERVICE_PARTS,
+  parseStringList,
+  sameName,
+} from "@/lib/sewingMachines"
 
 /** Machine types (with their comes-with lists) and the brand/model library */
 export async function GET(request: NextRequest) {
@@ -24,11 +29,29 @@ export async function GET(request: NextRequest) {
       typeSnap = await db.collection("machineTypes").orderBy("order").get()
     }
 
+    // Types made before servicing was added get a starting list of service parts
+    const missingParts = typeSnap.docs.filter((doc) => !Array.isArray(doc.data().serviceParts))
+    if (missingParts.length) {
+      const batch = db.batch()
+      for (const doc of missingParts) {
+        const defaults = DEFAULT_SERVICE_PARTS[(doc.data().name ?? "").toLowerCase()] ?? []
+        batch.update(doc.ref, { serviceParts: defaults })
+      }
+      await batch.commit()
+      typeSnap = await db.collection("machineTypes").orderBy("order").get()
+    }
+
     const brandSnap = await db.collection("machineBrands").orderBy("name").get()
 
     const types = typeSnap.docs.map((doc) => {
       const data = doc.data()
-      return { id: doc.id, name: data.name, comesWith: data.comesWith ?? [], order: data.order ?? 0 }
+      return {
+        id: doc.id,
+        name: data.name,
+        comesWith: data.comesWith ?? [],
+        serviceParts: data.serviceParts ?? [],
+        order: data.order ?? 0,
+      }
     })
     const brands = brandSnap.docs.map((doc) => {
       const data = doc.data()
@@ -63,7 +86,12 @@ export async function POST(request: NextRequest) {
 
     const data =
       collection === "machineTypes"
-        ? { name, comesWith: parseStringList(body.comesWith), order: existing.size }
+        ? {
+            name,
+            comesWith: parseStringList(body.comesWith),
+            serviceParts: parseStringList(body.serviceParts),
+            order: existing.size,
+          }
         : { name, models: [] }
     const ref = await db.collection(collection).add({ ...data, createdAt: FieldValue.serverTimestamp() })
 

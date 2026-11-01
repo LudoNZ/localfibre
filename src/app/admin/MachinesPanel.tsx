@@ -10,30 +10,36 @@ import {
   OPEN_STATUSES,
   SewingMachine,
   WorkshopStatus,
+  isAwaitingParts,
   machineLabel,
   machineReadyMailto,
+  openServiceParts,
+  serviceSummary,
 } from "@/lib/sewingMachines";
+import { FundingPool, Purchase } from "@/lib/funding";
+import ServicePanel from "./ServiceModal";
 import AssignFields from "./AssignFields";
 import MachineForm from "./MachineForm";
 import MachineLibraryEditor from "./MachineLibraryEditor";
 import MachinesReport from "./MachinesReport";
 import {
-  AdminApi,
   AssignChoice,
   MachineLibrary,
   WaitingApplication,
   assignBody,
   formatDate,
+  useAdminApi,
 } from "./machineShared";
 import adminStyles from "./Admin.module.css";
 import styles from "./MachinesPanel.module.css";
 
-type Filter = MachineStatus | "assigned" | "all";
+type Filter = MachineStatus | "assigned" | "awaitingParts" | "all";
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "incoming", label: "Incoming" },
   { id: "servicing", label: "Being serviced" },
+  { id: "awaitingParts", label: "Awaiting parts" },
   { id: "ready", label: "Ready to go" },
   { id: "assigned", label: "Assigned" },
   { id: "repurposed", label: "Handed over" },
@@ -43,7 +49,13 @@ const FILTERS: { id: Filter; label: string }[] = [
 const isAssigned = (m: SewingMachine) => !!m.recipient && m.status !== "repurposed";
 
 const matchesFilter = (m: SewingMachine, filter: Filter) =>
-  filter === "all" ? true : filter === "assigned" ? isAssigned(m) : m.status === filter;
+  filter === "all"
+    ? true
+    : filter === "assigned"
+      ? isAssigned(m)
+      : filter === "awaitingParts"
+        ? m.status === "servicing" && isAwaitingParts(m)
+        : m.status === filter;
 
 // The next step in the workshop for each status
 const NEXT_STEP: Partial<Record<MachineStatus, { status: WorkshopStatus; label: string }>> = {
@@ -65,6 +77,11 @@ export default function MachinesPanel({ user }: { user: User | null }) {
   const [formKey, setFormKey] = useState(0);
   const [editing, setEditing] = useState<SewingMachine | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [servicingId, setServicingId] = useState<string | null>(null);
+
+  // Funding pools and purchases, for logging what servicing costs
+  const [pools, setPools] = useState<FundingPool[]>([]);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
 
   // Assign modal
   const [assigning, setAssigning] = useState<SewingMachine | null>(null);
@@ -72,22 +89,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
   const [assignedEmail, setAssignedEmail] = useState<{ name: string; href: string | null } | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const api: AdminApi = useCallback(
-    async (url, init = {}) => {
-      const token = await user?.getIdToken();
-      const res = await fetch(url, {
-        ...init,
-        headers: {
-          ...(init.body ? { "Content-Type": "application/json" } : {}),
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || "Request failed");
-      return data;
-    },
-    [user]
-  );
+  const api = useAdminApi(user);
 
   const loadData = useCallback(async () => {
     setError("");
@@ -114,10 +116,21 @@ export default function MachinesPanel({ user }: { user: User | null }) {
     }
   }, [api]);
 
+  const loadFunding = useCallback(async () => {
+    try {
+      const [poolData, purchaseData] = await Promise.all([api("/api/funding-pools"), api("/api/purchases")]);
+      setPools((poolData.pools as FundingPool[]) || []);
+      setPurchases((purchaseData.purchases as Purchase[]) || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load funding");
+    }
+  }, [api]);
+
   useEffect(() => {
     loadData();
     loadLibrary();
-  }, [loadData, loadLibrary]);
+    loadFunding();
+  }, [loadData, loadLibrary, loadFunding]);
 
   // Renaming a brand or model also renames logged machines, so refresh both
   const reloadLibraryAndMachines = useCallback(async () => {
@@ -144,6 +157,11 @@ export default function MachinesPanel({ user }: { user: User | null }) {
   };
 
   const setStatus = async (machine: SewingMachine, status: WorkshopStatus) => {
+    const open = openServiceParts(machine);
+    if (status === "ready" && open.length) {
+      const list = open.map((p) => `${p.name} (${p.state === "waiting" ? "waiting for a part" : "problem"})`);
+      if (!confirm(`Still to sort: ${list.join(", ")}. Mark ${machineLabel(machine)} ready anyway?`)) return;
+    }
     setError("");
     try {
       await api(`/api/machines/${machine.id}`, { method: "PUT", body: JSON.stringify({ status }) });
@@ -222,6 +240,10 @@ export default function MachinesPanel({ user }: { user: User | null }) {
     }
   };
 
+  const servicingMachine = machines.find((m) => m.id === servicingId) ?? null;
+  // People who've paid for things themselves before
+  const payers = [...new Set(purchases.map((p) => p.paidBy).filter((p) => p && p !== "pool"))];
+
   const readyCount = machines.filter((m) => m.status === "ready").length;
   const handedOverCount = machines.filter((m) => m.status === "repurposed").length;
   const canSubmitAssign =
@@ -282,7 +304,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
       {loading ? (
         <p>Loading machines...</p>
       ) : view === "report" ? (
-        <MachinesReport machines={machines} />
+        <MachinesReport machines={machines} purchases={purchases} />
       ) : (
         <>
           <div className={adminStyles.filterGroup} role="group" aria-label="Filter machines">
@@ -326,6 +348,15 @@ export default function MachinesPanel({ user }: { user: User | null }) {
                         </span>
                         {isAssigned(machine) && (
                           <span className={`${styles.statusBadge} ${styles.assigned}`}>Assigned</span>
+                        )}
+                        {machine.status === "servicing" && isAwaitingParts(machine) && (
+                          <span className={`${styles.statusBadge} ${styles.awaiting}`}>
+                            Waiting:{" "}
+                            {machine.serviceParts
+                              .filter((p) => p.state === "waiting")
+                              .map((p) => p.name.toLowerCase())
+                              .join(", ")}
+                          </span>
                         )}
                       </div>
 
@@ -374,6 +405,17 @@ export default function MachinesPanel({ user }: { user: User | null }) {
                           </>
                         )}
                       </dl>
+
+                      {machine.status !== "servicing" && serviceSummary(machine) && (
+                        <button
+                          type="button"
+                          className={styles.historyLine}
+                          onClick={() => setServicingId(machine.id)}
+                        >
+                          <span className={styles.recipientLabel}>Service history</span>
+                          <span>{serviceSummary(machine)}</span>
+                        </button>
+                      )}
 
                       {machine.recipient && (
                         <div className={styles.recipient}>
@@ -436,6 +478,11 @@ export default function MachinesPanel({ user }: { user: User | null }) {
                             </button>
                           </>
                         )}
+                        {machine.status === "servicing" && (
+                          <button className="btn-secondary" onClick={() => setServicingId(machine.id)}>
+                            Service
+                          </button>
+                        )}
                         <button className="btn-secondary" onClick={() => openForm(machine)}>
                           Edit
                         </button>
@@ -489,6 +536,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
           library={library}
           reloadLibrary={reloadLibraryAndMachines}
           editing={editing}
+          machines={machines}
           assignable={assignable}
           queueNumbers={queueNumbers}
           onSaved={async () => {
@@ -498,9 +546,38 @@ export default function MachinesPanel({ user }: { user: User | null }) {
         />
       </EditModal>
 
+      {/* Faulty parts, purchases and service notes */}
+      <EditModal
+        isOpen={!!servicingMachine}
+        onClose={() => setServicingId(null)}
+        title={servicingMachine ? `Service ${machineLabel(servicingMachine)}` : "Service"}
+      >
+        {servicingMachine && (
+          <ServicePanel
+            key={servicingMachine.id}
+            api={api}
+            user={user}
+            machine={servicingMachine}
+            machines={machines}
+            library={library}
+            pools={pools}
+            purchases={purchases}
+            payers={payers}
+            reloadLibrary={loadLibrary}
+            reloadMachines={loadData}
+            reloadFunding={loadFunding}
+          />
+        )}
+      </EditModal>
+
       {/* Brands, models, types and their comes-with lists */}
       <EditModal isOpen={libraryOpen} onClose={() => setLibraryOpen(false)} title="Machine library">
-        <MachineLibraryEditor api={api} library={library} reloadLibrary={reloadLibraryAndMachines} />
+        <MachineLibraryEditor
+          api={api}
+          library={library}
+          machines={machines}
+          reloadLibrary={reloadLibraryAndMachines}
+        />
       </EditModal>
 
       {/* Promise a machine to someone, at any stage */}

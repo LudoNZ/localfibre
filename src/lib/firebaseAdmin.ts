@@ -22,3 +22,4 @@ if (!admin.apps.length) {
 
 export const db = admin.firestore()
 export const FieldValue = admin.firestore.FieldValue
+export const bucket = admin.storage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET)

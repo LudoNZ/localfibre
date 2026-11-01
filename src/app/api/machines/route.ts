@@ -5,6 +5,8 @@ import {
   MACHINE_DETAIL_FIELDS,
   isWorkshopStatus,
   parseCondition,
+  parseServiceLog,
+  parseServiceParts,
   parseStringList,
 } from "@/lib/sewingMachines"
 
@@ -70,6 +72,8 @@ export async function POST(request: NextRequest) {
         ...details,
         condition: parseCondition(body.condition),
         comesWith: parseStringList(body.comesWith),
+        serviceParts: parseServiceParts(body.serviceParts),
+        serviceLog: parseServiceLog(body.serviceLog),
         number: next,
         photos,
         status,

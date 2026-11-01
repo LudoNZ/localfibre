@@ -5,7 +5,7 @@ import { parseStringList, sameName } from "@/lib/sewingMachines"
 
 type Params = { params: Promise<{ id: string }> }
 
-/** Rename a machine type and/or replace its comes-with list */
+/** Rename a machine type and/or replace its comes-with or service parts list */
 export async function PUT(request: NextRequest, { params }: Params) {
   const denied = await requireAdmin(request)
   if (denied) return denied
@@ -25,6 +25,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       updates.name = name
     }
     if (Array.isArray(body.comesWith)) updates.comesWith = parseStringList(body.comesWith)
+    if (Array.isArray(body.serviceParts)) updates.serviceParts = parseStringList(body.serviceParts)
 
     const ref = db.collection("machineTypes").doc(id)
     if (!(await ref.get()).exists) {

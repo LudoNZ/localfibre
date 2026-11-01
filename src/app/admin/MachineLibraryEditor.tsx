@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MachineBrand, MachineModel, dedupe } from "@/lib/sewingMachines";
+import { MachineBrand, MachineModel, SewingMachine, dedupe } from "@/lib/sewingMachines";
+import RemoveItemDialog, { RemoveItemTarget } from "./RemoveItemDialog";
 import { AdminApi, MachineLibrary } from "./machineShared";
 import adminStyles from "./Admin.module.css";
 import styles from "./MachinesPanel.module.css";
@@ -9,6 +10,7 @@ import styles from "./MachinesPanel.module.css";
 interface LibraryEditorProps {
   api: AdminApi;
   library: MachineLibrary;
+  machines: SewingMachine[];
   reloadLibrary: () => Promise<void>;
 }
 
@@ -16,11 +18,13 @@ interface LibraryEditorProps {
 function TagEditor({
   items,
   onChange,
+  onRemove,
   placeholder,
   label,
 }: {
   items: string[];
   onChange: (items: string[]) => void;
+  onRemove: (item: string) => void;
   placeholder: string;
   label: string;
 }) {
@@ -40,7 +44,7 @@ function TagEditor({
               {item}
               <button
                 type="button"
-                onClick={() => onChange(items.filter((i) => i !== item))}
+                onClick={() => onRemove(item)}
                 aria-label={`Remove ${item}`}
               >
                 ✕
@@ -97,7 +101,8 @@ function RenameInput({ value, onSave, label }: { value: string; onSave: (name: s
 }
 
 /** Manage machine types, their comes-with lists, and the brand/model library */
-export default function MachineLibraryEditor({ api, library, reloadLibrary }: LibraryEditorProps) {
+export default function MachineLibraryEditor({ api, library, machines, reloadLibrary }: LibraryEditorProps) {
+  const [removing, setRemoving] = useState<RemoveItemTarget | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [newType, setNewType] = useState("");
@@ -134,7 +139,9 @@ export default function MachineLibraryEditor({ api, library, reloadLibrary }: Li
 
       <section>
         <h3 className={styles.libraryHeading}>Machine types</h3>
-        <p className={styles.hint}>Each type has its own comes-with checklist.</p>
+        <p className={styles.hint}>
+          Each type has its own comes-with checklist, and a list of parts to check when servicing.
+        </p>
         <ul className={styles.libraryList}>
           {library.types.map((type) => (
             <li key={type.id} className={styles.libraryItem}>
@@ -156,11 +163,28 @@ export default function MachineLibraryEditor({ api, library, reloadLibrary }: Li
                   Remove
                 </button>
               </div>
+              <span className={styles.tagEditorLabel}>Comes with</span>
               <TagEditor
                 items={type.comesWith}
                 onChange={(comesWith) => put(`/api/machine-library/types/${type.id}`, { comesWith })}
+                onRemove={(item) => setRemoving({ item, typeId: type.id })}
                 placeholder="Add an item, e.g. bobbins"
                 label={`Add a comes-with item for ${type.name}`}
+              />
+              <span className={styles.tagEditorLabel}>Service parts</span>
+              <TagEditor
+                items={type.serviceParts ?? []}
+                onChange={(serviceParts) => put(`/api/machine-library/types/${type.id}`, { serviceParts })}
+                onRemove={(part) => {
+                  // Machines that flagged this part keep it on their service record
+                  if (confirm(`Take ${part} off the ${type.name.toLowerCase()} parts list?`)) {
+                    put(`/api/machine-library/types/${type.id}`, {
+                      serviceParts: (type.serviceParts ?? []).filter((p) => p !== part),
+                    });
+                  }
+                }}
+                placeholder="Add a part, e.g. belt"
+                label={`Add a service part for ${type.name}`}
               />
             </li>
           ))}
@@ -272,6 +296,7 @@ export default function MachineLibraryEditor({ api, library, reloadLibrary }: Li
                       <TagEditor
                         items={model.extras}
                         onChange={(extras) => updateModel(brand, index, { extras })}
+                        onRemove={(item) => setRemoving({ item, brandId: brand.id, model: model.name })}
                         placeholder="Extra item for this model"
                         label={`Add an extra item for ${model.name}`}
                       />
@@ -309,6 +334,15 @@ export default function MachineLibraryEditor({ api, library, reloadLibrary }: Li
           </button>
         </form>
       </section>
+
+      <RemoveItemDialog
+        api={api}
+        library={library}
+        machines={machines}
+        target={removing}
+        onClose={() => setRemoving(null)}
+        onRemoved={reloadLibrary}
+      />
     </div>
   );
 }

@@ -7,6 +7,8 @@ import {
   OPEN_STATUSES,
   isWorkshopStatus,
   parseCondition,
+  parseServiceLog,
+  parseServiceParts,
   parseStringList,
 } from "@/lib/sewingMachines"
 
@@ -33,6 +35,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
     }
     if ("condition" in body) updates.condition = parseCondition(body.condition)
     if (Array.isArray(body.comesWith)) updates.comesWith = parseStringList(body.comesWith)
+    // The service record can still be filled in after servicing, until handover
+    if (Array.isArray(body.serviceParts)) updates.serviceParts = parseServiceParts(body.serviceParts)
+    if (Array.isArray(body.serviceLog)) updates.serviceLog = parseServiceLog(body.serviceLog)
     if (updates.brand === "") {
       return NextResponse.json({ error: "Brand is required" }, { status: 400 })
     }
@@ -42,6 +47,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
     await db.runTransaction(async (tx) => {
       const machine = await tx.get(machineRef)
       if (!machine.exists) throw new ActionError("Machine not found")
+
+      if (
+        machine.data()?.status === "repurposed" &&
+        (updates.serviceParts || updates.serviceLog)
+      ) {
+        throw new ActionError("Handed-over machines keep their service record as it was")
+      }
 
       // Handed-over machines are part of the permanent log
       if (isWorkshopStatus(body.status)) {

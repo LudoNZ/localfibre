@@ -51,6 +51,89 @@ export interface MachineRecipient {
   groupName: string | null
 }
 
+// ── Servicing ────────────────────────────────────────────────────────
+
+export const SERVICE_PART_STATES = ["problem", "waiting", "fixed", "replaced"] as const
+
+export type ServicePartState = (typeof SERVICE_PART_STATES)[number]
+
+export const SERVICE_PART_STATE_LABELS: Record<ServicePartState, string> = {
+  problem: "Problem found",
+  waiting: "Waiting for part",
+  fixed: "Fixed, no parts",
+  replaced: "Replaced",
+}
+
+// A part flagged as faulty on one machine
+export interface ServicePart {
+  name: string
+  state: ServicePartState
+  note: string
+}
+
+// One line in a machine's service log, e.g. "fixed timing", with optional volunteer time
+export interface ServiceNote {
+  id: string
+  date: string
+  text: string
+  volunteer: string
+  hours: number | null
+}
+
+export const isAwaitingParts = (machine: Pick<SewingMachine, "serviceParts">) =>
+  (machine.serviceParts || []).some((p) => p.state === "waiting")
+
+/** Parts not yet sorted: still a problem or waiting for a part */
+export const openServiceParts = (machine: Pick<SewingMachine, "serviceParts">) =>
+  (machine.serviceParts || []).filter((p) => p.state === "problem" || p.state === "waiting")
+
+export const serviceHours = (machine: Pick<SewingMachine, "serviceLog">) =>
+  (machine.serviceLog || []).reduce((total, note) => total + (note.hours ?? 0), 0)
+
+const text = (value: unknown, max = 500) => (typeof value === "string" ? value.trim().slice(0, max) : "")
+
+export function parseServiceParts(value: unknown): ServicePart[] {
+  if (!Array.isArray(value)) return []
+  const parts = value
+    .filter((p): p is Record<string, unknown> => !!p && typeof p === "object")
+    .map((p) => ({
+      name: text(p.name, 100),
+      state: SERVICE_PART_STATES.includes(p.state as ServicePartState) ? (p.state as ServicePartState) : "problem",
+      note: text(p.note),
+    }))
+    .filter((p) => p.name)
+  const names = dedupe(parts.map((p) => p.name))
+  return names.map((name) => parts.find((p) => p.name === name)!)
+}
+
+export function parseServiceLog(value: unknown): ServiceNote[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((n): n is Record<string, unknown> => !!n && typeof n === "object")
+    .map((n) => {
+      const hours = typeof n.hours === "number" && isFinite(n.hours) && n.hours > 0 ? Math.round(n.hours * 100) / 100 : null
+      return {
+        id: text(n.id, 40) || Math.random().toString(36).slice(2, 10),
+        date: /^\d{4}-\d{2}-\d{2}$/.test(text(n.date)) ? text(n.date) : new Date().toISOString().slice(0, 10),
+        text: text(n.text, 1000),
+        volunteer: text(n.volunteer, 100),
+        hours,
+      }
+    })
+    .filter((n) => n.text || n.hours)
+}
+
+/** Short summary for the card, e.g. "Replaced belt · fixed tension · 3.5 h" */
+export function serviceSummary(machine: Pick<SewingMachine, "serviceParts" | "serviceLog">) {
+  const parts = (machine.serviceParts || []).map((p) => {
+    const verb = { problem: "problem:", waiting: "waiting for", fixed: "fixed", replaced: "replaced" }[p.state]
+    return `${verb} ${p.name.toLowerCase()}`
+  })
+  const hours = serviceHours(machine)
+  const summary = [...parts, hours ? `${hours} h` : ""].filter(Boolean).join(" · ")
+  return summary ? summary[0].toUpperCase() + summary.slice(1) : ""
+}
+
 export interface SewingMachine {
   id: string
   number: number
@@ -63,6 +146,8 @@ export interface SewingMachine {
   comesWith: string[]
   notes: string
   photos: string[]
+  serviceParts: ServicePart[]
+  serviceLog: ServiceNote[]
   status: MachineStatus
   recipient: MachineRecipient | null
   createdAt: string | null
@@ -95,6 +180,8 @@ export interface MachineType {
   id: string
   name: string
   comesWith: string[]
+  // Parts that commonly need attention, offered when servicing
+  serviceParts: string[]
   order: number
 }
 
@@ -111,9 +198,33 @@ export interface MachineBrand {
   models: MachineModel[]
 }
 
+const COMMON_SERVICE_PARTS = ["Belt", "Electric motor", "Motor brushes", "Foot controller", "Power cord", "Light"]
+
+export const DEFAULT_SERVICE_PARTS: Record<string, string[]> = {
+  "sewing machine": [
+    ...COMMON_SERVICE_PARTS,
+    "Bobbin case",
+    "Hook/timing",
+    "Tension",
+    "Feed dogs",
+    "Needle plate",
+  ],
+  overlocker: [...COMMON_SERVICE_PARTS, "Knives/blades", "Upper looper", "Lower looper", "Differential feed", "Tension"],
+}
+
 export const DEFAULT_MACHINE_TYPES: Omit<MachineType, "id">[] = [
-  { name: "Sewing machine", comesWith: ["Foot pedal", "Power cord", "Bobbins", "Cover"], order: 0 },
-  { name: "Overlocker", comesWith: ["Foot pedal", "Power cord", "Cover", "Tweezers", "Thread nets"], order: 1 },
+  {
+    name: "Sewing machine",
+    comesWith: ["Foot pedal", "Power cord", "Bobbins", "Cover"],
+    serviceParts: DEFAULT_SERVICE_PARTS["sewing machine"],
+    order: 0,
+  },
+  {
+    name: "Overlocker",
+    comesWith: ["Foot pedal", "Power cord", "Cover", "Tweezers", "Thread nets"],
+    serviceParts: DEFAULT_SERVICE_PARTS.overlocker,
+    order: 1,
+  },
 ]
 
 /** Drops repeats, ignoring case, keeping the first spelling */

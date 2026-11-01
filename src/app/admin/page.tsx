@@ -8,6 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import styles from "./Admin.module.css";
 import EditModal from "@/components/ui/EditModal";
 import MachinesPanel from "./MachinesPanel";
+import FundingPanel from "./FundingPanel";
 import {
   APPLICATION_STATUSES,
   ApplicationStatus,
@@ -75,13 +76,14 @@ interface SewingApplication {
   createdAt: string | null;
 }
 
-type Tab = "users" | "events" | "patterns" | "machines" | "sewing" | "messages" | "newsletter";
+type Tab = "users" | "events" | "patterns" | "machines" | "funding" | "sewing" | "messages" | "newsletter";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "events", label: "Events" },
   { id: "patterns", label: "Resources" },
   { id: "machines", label: "Machines" },
+  { id: "funding", label: "Funding" },
   { id: "sewing", label: "Waiting List" },
   { id: "messages", label: "Messages" },
   { id: "newsletter", label: "Newsletter" },
@@ -1325,6 +1327,8 @@ export default function AdminPage() {
       )}
 
       {activeTab === "machines" && <MachinesPanel user={user} />}
+
+      {activeTab === "funding" && <FundingPanel user={user} />}
 
       {activeTab === "sewing" && (
         <div className={styles.section}>
