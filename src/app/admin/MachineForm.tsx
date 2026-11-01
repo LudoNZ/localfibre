@@ -39,6 +39,10 @@ interface MachineFormProps {
   onSaved: () => Promise<void>;
 }
 
+// Where an added comes-with item is remembered: only here, for the model, or for the whole type
+type ItemScope = "machine" | "model" | "type";
+type CustomItem = { name: string; scope: ItemScope };
+
 type FormState = {
   typeId: string;
   brand: string;
@@ -89,11 +93,9 @@ export default function MachineForm({
   onSaved,
 }: MachineFormProps) {
   const [form, setForm] = useState(() => initialForm(editing, library));
-  // Items added by hand on this machine, and the ones to remember for its model
-  const [extraItems, setExtraItems] = useState<string[]>([]);
-  const [rememberItems, setRememberItems] = useState<string[]>([]);
+  // Items added by hand on this machine, and where each one should be remembered
+  const [customItems, setCustomItems] = useState<CustomItem[]>([]);
   const [newItem, setNewItem] = useState("");
-  const [rememberNewItem, setRememberNewItem] = useState(true);
   const [assign, setAssign] = useState<AssignChoice>({ mode: "none" });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -108,8 +110,7 @@ export default function MachineForm({
   // Everything that could be ticked: type list, model extras, and anything already ticked
   const checklist = dedupe([
     ...checklistFor(type, libraryModel),
-    ...rememberItems,
-    ...extraItems,
+    ...customItems.map((c) => c.name),
     ...form.comesWith,
   ]);
   const isTicked = (item: string) => form.comesWith.some((c) => sameName(c, item));
@@ -130,12 +131,25 @@ export default function MachineForm({
   const addItem = () => {
     const item = newItem.trim();
     if (!item) return;
-    const canRemember = !!form.brand.trim() && !!form.model.trim();
-    if (rememberNewItem && canRemember) setRememberItems((list) => dedupe([...list, item]));
-    else setExtraItems((list) => dedupe([...list, item]));
+    if (!checklist.some((c) => sameName(c, item))) {
+      setCustomItems((list) => [...list, { name: item, scope: "machine" }]);
+    }
     setForm((f) => ({ ...f, comesWith: dedupe([...f.comesWith, item]) }));
     setNewItem("");
   };
+
+  const setItemScope = (name: string, scope: ItemScope) =>
+    setCustomItems((list) => list.map((c) => (c.name === name ? { ...c, scope } : c)));
+
+  const removeCustomItem = (name: string) => {
+    setCustomItems((list) => list.filter((c) => c.name !== name));
+    setForm((f) => ({ ...f, comesWith: f.comesWith.filter((c) => !sameName(c, name)) }));
+  };
+
+  // Without a model, "every Brand Model" has nothing to attach to
+  const scopeOf = (item: CustomItem): ItemScope =>
+    item.scope === "model" && !form.model.trim() ? "machine" : item.scope;
+  const itemsFor = (scope: ItemScope) => customItems.filter((c) => scopeOf(c) === scope).map((c) => c.name);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -176,8 +190,18 @@ export default function MachineForm({
     const modelName = form.model.trim();
     if (!brandName) return false;
 
-    let target = brand;
     let changed = false;
+    // Items added to the type's default list, for every machine of that type
+    const forType = itemsFor("type");
+    if (type && forType.length) {
+      await api(`/api/machine-library/types/${type.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ comesWith: dedupe([...type.comesWith, ...forType]) }),
+      });
+      changed = true;
+    }
+
+    let target = brand;
     if (!target) {
       const { item } = (await api("/api/machine-library", {
         method: "POST",
@@ -189,7 +213,7 @@ export default function MachineForm({
     if (!modelName) return changed;
 
     const existing = findModel(target, modelName);
-    const extras = dedupe([...(existing?.extras ?? []), ...rememberItems]);
+    const extras = dedupe([...(existing?.extras ?? []), ...itemsFor("model")]);
     const typeId = existing?.typeId || form.typeId;
     const needsUpdate =
       !existing || extras.length !== existing.extras.length || typeId !== existing.typeId;
@@ -256,7 +280,7 @@ export default function MachineForm({
     }
   };
 
-  const canRememberItems = !!form.brand.trim() && !!form.model.trim();
+  const modelLabel = [form.brand.trim(), form.model.trim()].join(" ");
 
   return (
     <form onSubmit={handleSave} className={adminStyles.form}>
@@ -361,8 +385,7 @@ export default function MachineForm({
                 <label className={styles.checkItem}>
                   <input type="checkbox" checked={isTicked(item)} onChange={() => toggleItem(item)} />
                   <span>{item}</span>
-                  {(libraryModel?.extras.some((x) => sameName(x, item)) ||
-                    rememberItems.some((x) => sameName(x, item))) && (
+                  {libraryModel?.extras.some((x) => sameName(x, item)) && (
                     <span className={styles.modelTag}>{form.model.trim()} only</span>
                   )}
                 </label>
@@ -390,17 +413,51 @@ export default function MachineForm({
             Add
           </button>
         </div>
-        {canRememberItems && (
-          <label className={styles.checkItem}>
-            <input
-              type="checkbox"
-              checked={rememberNewItem}
-              onChange={(e) => setRememberNewItem(e.target.checked)}
-            />
-            <span>
-              Remember added items for every {form.brand.trim()} {form.model.trim()}
-            </span>
-          </label>
+        {customItems.length > 0 && (
+          <div className={styles.customItems}>
+            <p className={styles.customItemsTitle}>Added items: where should they be saved?</p>
+            <ul>
+              {customItems.map((item) => {
+                const scopes: { id: ItemScope; label: string }[] = [
+                  { id: "machine", label: "Just this machine" },
+                  ...(form.model.trim()
+                    ? [{ id: "model" as const, label: `Every ${modelLabel}` }]
+                    : []),
+                  ...(type ? [{ id: "type" as const, label: `Default for all ${type.name.toLowerCase()}s` }] : []),
+                ];
+                return (
+                  <li key={item.name} className={styles.customItem}>
+                    <div className={styles.customItemHead}>
+                      <strong>{item.name}</strong>
+                      <button
+                        type="button"
+                        className={styles.textButton}
+                        onClick={() => removeCustomItem(item.name)}
+                        aria-label={`Remove ${item.name}`}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className={styles.segmented} role="radiogroup" aria-label={`Save ${item.name} for`}>
+                      {scopes.map(({ id, label }) => (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={scopeOf(item) === id}
+                          className={scopeOf(item) === id ? styles.segmentActive : undefined}
+                          onClick={() => setItemScope(item.name, id)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className={styles.hint}>Library changes are saved with the machine.</p>
+          </div>
         )}
       </div>
 
