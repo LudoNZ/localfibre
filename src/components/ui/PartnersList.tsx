@@ -1,4 +1,4 @@
-import { partners as defaultPartners, orgSlug, Partner } from "@/data/partners";
+import { getOrganisations, OrgGroup } from "@/lib/organisations";
 import { getStoredImages } from "@/lib/storedImages";
 import type { SitePhoto } from "@/lib/sitePhotoSlots";
 import ImageEditButton from "./ImageEditButton";
@@ -7,15 +7,14 @@ import styles from "./PartnersList.module.css";
 const LOGO_WIDTHS = [160, 320, 480];
 
 /** Organisations as logo or name badges (partners by default). Admins can upload logos. */
-export default async function PartnersList({ partners = defaultPartners }: { partners?: Partner[] }) {
+export default async function PartnersList({ group = "partner" }: { group?: OrgGroup }) {
+  const [partners, uploadedLogos] = await Promise.all([getOrganisations(group), getStoredImages("partnerLogos")]);
   if (partners.length === 0) return null;
-
-  const uploadedLogos = await getStoredImages("partnerLogos");
 
   return (
     <ul className={styles.list}>
       {partners.map((partner) => {
-        const slug = orgSlug(partner.name);
+        const slug = partner.logoKey;
         const logo: SitePhoto | null = uploadedLogos[slug] ?? (partner.logo ? { src: partner.logo } : null);
 
         const content = (
@@ -41,7 +40,7 @@ export default async function PartnersList({ partners = defaultPartners }: { par
         );
 
         return (
-          <li key={partner.name} className={styles.item}>
+          <li key={partner.id} className={styles.item}>
             {partner.url ? (
               <a href={partner.url} target="_blank" rel="noopener noreferrer" className={styles.inner}>
                 {content}

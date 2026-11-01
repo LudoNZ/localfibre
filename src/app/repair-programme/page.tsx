@@ -9,7 +9,7 @@ import PhotoFrame from "@/components/ui/PhotoFrame"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import { site } from "@/data/site"
-import { machineRecipients } from "@/data/partners"
+import { getOrganisations } from "@/lib/organisations"
 import PartnersList from "@/components/ui/PartnersList"
 
 export const dynamic = "force-dynamic"
@@ -40,10 +40,11 @@ const donateHref = `mailto:${site.email}?subject=${encodeURIComponent("Donating 
 )}`
 
 export default async function RepairProgrammePage() {
-  const [impact, gallery, photos] = await Promise.all([
+  const [impact, gallery, photos, machineRecipients] = await Promise.all([
     getImpactNumbers(),
     getRepurposedGallery(),
     getSitePhotos(),
+    getOrganisations("recipient"),
   ])
 
   return (
@@ -139,7 +140,7 @@ export default async function RepairProgrammePage() {
               title="Sewing machines in the community"
               intro="As well as individuals, machines from the programme have gone to community organisations including:"
             />
-            <PartnersList partners={machineRecipients} />
+            <PartnersList group="recipient" />
           </div>
         </section>
       )}

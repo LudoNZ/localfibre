@@ -1249,6 +1249,23 @@
   font-weight: 600;
 }
 
+/* Partners */
+.orgSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.orgSection > p {
+  margin: 0;
+}
+
+.purchaseActions .textButton:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 /* Funding */
 .poolList {
   list-style: none;

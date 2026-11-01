@@ -1,7 +1,7 @@
-// Partners and supporters shown on the home and About pages.
-// Logos are easiest to add with the "Add logo" button admins see on each badge;
-// a path in `logo` (under /public) is used if nothing has been uploaded.
-// `role` (e.g. "Funder") and `url` are optional.
+// Starting lists for the organisations shown on the site. They're copied into the
+// database the first time the site needs them; after that admins edit them in the
+// admin panel (Partners tab), and logos with the "Add logo" button on each badge.
+// A path in `logo` (under /public) is used if nothing has been uploaded.
 
 export interface Partner {
   name: string
@@ -13,8 +13,6 @@ export interface Partner {
 export const partners: Partner[] = [
   { name: "EcoMatters" },
   { name: "Waitākere Ranges Local Board" },
-  { name: "Tipping Point" },
-  { name: "Local Making" },
   { name: "West Auckland Resource Centre" },
 ]
 
@@ -34,7 +32,3 @@ export const orgSlug = (name: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
-
-/** Every organisation that can have a logo uploaded from the site */
-export const isKnownOrgSlug = (slug: string) =>
-  [...partners, ...machineRecipients].some((org) => orgSlug(org.name) === slug)

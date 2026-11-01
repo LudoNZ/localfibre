@@ -14,7 +14,7 @@ import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import PartnersList from "@/components/ui/PartnersList"
 import { site } from "@/data/site"
-import { machineRecipients } from "@/data/partners"
+import { getOrganisations } from "@/lib/organisations"
 
 export const dynamic = "force-dynamic"
 
@@ -37,11 +37,12 @@ const offerings = [
 ] as const
 
 export default async function Home() {
-  const [events, patterns, impact, photos] = await Promise.all([
+  const [events, patterns, impact, photos, machineRecipients] = await Promise.all([
     getEvents(),
     getPatterns(),
     getImpactNumbers(),
     getSitePhotos(),
+    getOrganisations("recipient"),
   ])
   const upcomingEvents = events.filter((e) => e.isUpcoming)
   const pastEvents = events.filter((e) => !e.isUpcoming)
@@ -152,7 +153,7 @@ export default async function Home() {
                 <p className={styles.recipientsLabel}>Machines have gone to groups including</p>
                 <ul>
                   {machineRecipients.map((org) => (
-                    <li key={org.name}>{org.name}</li>
+                    <li key={org.id}>{org.name}</li>
                   ))}
                 </ul>
               </div>

@@ -9,6 +9,7 @@ import styles from "./Admin.module.css";
 import EditModal from "@/components/ui/EditModal";
 import MachinesPanel from "./MachinesPanel";
 import FundingPanel from "./FundingPanel";
+import PartnersPanel from "./PartnersPanel";
 import {
   APPLICATION_STATUSES,
   ApplicationStatus,
@@ -76,7 +77,16 @@ interface SewingApplication {
   createdAt: string | null;
 }
 
-type Tab = "users" | "events" | "patterns" | "machines" | "funding" | "sewing" | "messages" | "newsletter";
+type Tab =
+  | "users"
+  | "events"
+  | "patterns"
+  | "machines"
+  | "funding"
+  | "sewing"
+  | "partners"
+  | "messages"
+  | "newsletter";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
@@ -85,6 +95,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "machines", label: "Machines" },
   { id: "funding", label: "Funding" },
   { id: "sewing", label: "Waiting List" },
+  { id: "partners", label: "Partners" },
   { id: "messages", label: "Messages" },
   { id: "newsletter", label: "Newsletter" },
 ];
@@ -1329,6 +1340,8 @@ export default function AdminPage() {
       {activeTab === "machines" && <MachinesPanel user={user} />}
 
       {activeTab === "funding" && <FundingPanel user={user} />}
+
+      {activeTab === "partners" && <PartnersPanel user={user} />}
 
       {activeTab === "sewing" && (
         <div className={styles.section}>

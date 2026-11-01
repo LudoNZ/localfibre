@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/adminAuth"
-import { isKnownOrgSlug } from "@/data/partners"
+import { isKnownLogoKey } from "@/lib/organisations"
 import { deleteStoredImage, saveStoredImage } from "@/lib/storedImages"
 
 type Params = { params: Promise<{ slug: string }> }
@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
   try {
     const { slug } = await params
-    if (!isKnownOrgSlug(slug)) {
+    if (!(await isKnownLogoKey(slug))) {
       return NextResponse.json({ error: "Unknown organisation" }, { status: 400 })
     }
     return await saveStoredImage("partnerLogos", slug, await request.json(), `partnerLogos/${slug}`)
@@ -29,7 +29,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
   try {
     const { slug } = await params
-    if (!isKnownOrgSlug(slug)) {
+    if (!(await isKnownLogoKey(slug))) {
       return NextResponse.json({ error: "Unknown organisation" }, { status: 400 })
     }
     return await deleteStoredImage("partnerLogos", slug)
