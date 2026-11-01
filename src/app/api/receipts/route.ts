@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { bucket } from "@/lib/firebaseAdmin"
 import { requireAdmin } from "@/lib/adminAuth"
 
-/** Serve a private receipt to an admin. Receipts aren't readable from Storage directly. */
+/**
+ * Serve a private file to an admin: a receipt, or a photo sent with a donation offer.
+ * Neither is readable from Storage directly.
+ */
 export async function GET(request: NextRequest) {
   const denied = await requireAdmin(request)
   if (denied) return denied
 
   const path = request.nextUrl.searchParams.get("path") || ""
-  if (!/^receipts\/[A-Za-z0-9_.-]+$/.test(path)) {
+  if (!/^(receipts|donations)\/[A-Za-z0-9_.-]+$/.test(path)) {
     return NextResponse.json({ error: "Invalid receipt" }, { status: 400 })
   }
 

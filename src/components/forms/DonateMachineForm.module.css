@@ -1,0 +1,98 @@
+/* Off-screen trap field for spam bots */
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.photos {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: 0;
+  margin: 0;
+}
+
+.photos li {
+  position: relative;
+}
+
+.photos img {
+  display: block;
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+}
+
+.photos button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.addPhoto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 104px;
+  padding: var(--spacing-sm);
+  border: 2px dashed var(--ink);
+  border-radius: 12px;
+  background: #fffaf2;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.addPhoto:focus-within {
+  box-shadow: 0 0 0 3px var(--mustard);
+}
+
+.addPhoto input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.stepper input {
+  width: 5rem;
+  text-align: center;
+}
+
+.stepper button {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.stepper button:disabled {
+  opacity: 0.4;
+}

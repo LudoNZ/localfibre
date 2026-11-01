@@ -102,6 +102,9 @@ export default function Header() {
                 Admin
               </Link>
             )}
+            <Link href="/donate-machine" className={`btn-secondary ${styles.ctaButton} ${styles.ctaSecondary}`}>
+              Donate a machine
+            </Link>
             <Link href="/sewing-machines" className={`btn-accent ${styles.ctaButton}`}>
               Apply for a machine
             </Link>
@@ -159,6 +162,9 @@ export default function Header() {
           </ul>
           <Link href="/sewing-machines" className={`btn-accent ${styles.mobileCta}`} onClick={closeMenu}>
             Apply for a sewing machine
+          </Link>
+          <Link href="/donate-machine" className={`btn-secondary ${styles.mobileCta}`} onClick={closeMenu}>
+            Donate a machine
           </Link>
           <div className={styles.mobileAuth}>{authControls}</div>
         </div>

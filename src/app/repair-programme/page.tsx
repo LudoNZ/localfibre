@@ -35,10 +35,6 @@ const steps = [
   },
 ]
 
-const donateHref = `mailto:${site.email}?subject=${encodeURIComponent("Donating a sewing machine")}&body=${encodeURIComponent(
-  "Kia ora Local Fibre,\n\nI have a sewing machine I'd like to donate.\n\nBrand/model (if known):\nCondition:\nSuburb:\n\nNgā mihi,"
-)}`
-
 export default async function RepairProgrammePage() {
   const [impact, gallery, photos, machineRecipients] = await Promise.all([
     getImpactNumbers(),
@@ -60,9 +56,9 @@ export default async function RepairProgrammePage() {
               align="left"
             />
             <div className={styles.ctas}>
-              <a href={donateHref} className="btn-primary">
+              <Link href="/donate-machine" className="btn-primary">
                 Donate a machine
-              </a>
+              </Link>
               <Link href="/sewing-machines" className="btn-accent">
                 Apply for a machine
               </Link>
@@ -186,9 +182,14 @@ export default async function RepairProgrammePage() {
               Machines are collected from West Auckland, so we prioritise applicants who live in or
               near West Auckland.
             </p>
-            <Link href="/sewing-machines" className="btn-primary">
-              Join the waiting list
-            </Link>
+            <div className={styles.ctas}>
+              <Link href="/sewing-machines" className="btn-primary">
+                Join the waiting list
+              </Link>
+              <Link href="/donate-machine" className="btn-secondary">
+                Donate a machine
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -223,9 +224,9 @@ export default async function RepairProgrammePage() {
           <h2>Have a machine you no longer use?</h2>
           <p>Donate it, and we&apos;ll make sure it gets back into a maker&apos;s hands.</p>
           <div className={styles.ctas}>
-            <a href={donateHref} className="btn-primary">
+            <Link href="/donate-machine" className="btn-primary">
               Donate a machine
-            </a>
+            </Link>
             <Link href="/sewing-machines" className="btn-secondary">
               Apply for a machine
             </Link>

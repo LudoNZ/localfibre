@@ -77,6 +77,13 @@
   white-space: nowrap;
 }
 
+/* The second header button only where there's room for both */
+@media (max-width: 1180px) {
+  .ctaSecondary {
+    display: none;
+  }
+}
+
 .desktopAuth {
   display: flex;
   align-items: center;

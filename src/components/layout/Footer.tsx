@@ -8,6 +8,7 @@ const exploreLinks = [
   { label: "About", href: "/about" },
   { label: "Repair Programme", href: "/repair-programme" },
   { label: "Apply for a machine", href: "/sewing-machines" },
+  { label: "Donate a machine", href: "/donate-machine" },
   { label: "Events", href: "/#events" },
   { label: "Resources", href: "/#resources" },
 ];

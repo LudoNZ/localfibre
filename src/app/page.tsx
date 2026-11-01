@@ -165,6 +165,9 @@ export default async function Home() {
               <Link href="/sewing-machines" className="btn-secondary">
                 Apply for a machine
               </Link>
+              <Link href="/donate-machine" className="btn-secondary">
+                Donate a machine
+              </Link>
             </div>
           </div>
           <PhotoFrame

@@ -24,6 +24,9 @@ export default function SewingMachinesPage() {
           <Link href="/repair-programme" className={styles.programmeLink}>
             How the programme works →
           </Link>
+          <p className={styles.donateLink}>
+            Have a machine to give? <Link href="/donate-machine">Donate a machine</Link>
+          </p>
         </div>
       </section>
 

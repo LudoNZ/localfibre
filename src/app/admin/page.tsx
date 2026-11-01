@@ -9,6 +9,7 @@ import styles from "./Admin.module.css";
 import EditModal from "@/components/ui/EditModal";
 import MachinesPanel from "./MachinesPanel";
 import FundingPanel from "./FundingPanel";
+import DonationsPanel from "./DonationsPanel";
 import PartnersPanel from "./PartnersPanel";
 import {
   APPLICATION_STATUSES,
@@ -82,6 +83,7 @@ type Tab =
   | "events"
   | "patterns"
   | "machines"
+  | "donations"
   | "funding"
   | "sewing"
   | "partners"
@@ -93,6 +95,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "events", label: "Events" },
   { id: "patterns", label: "Resources" },
   { id: "machines", label: "Machines" },
+  { id: "donations", label: "Donations" },
   { id: "funding", label: "Funding" },
   { id: "sewing", label: "Waiting List" },
   { id: "partners", label: "Partners" },
@@ -1338,6 +1341,8 @@ export default function AdminPage() {
       )}
 
       {activeTab === "machines" && <MachinesPanel user={user} />}
+
+      {activeTab === "donations" && <DonationsPanel user={user} />}
 
       {activeTab === "funding" && <FundingPanel user={user} />}
 
