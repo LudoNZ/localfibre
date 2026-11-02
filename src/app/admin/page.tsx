@@ -90,18 +90,43 @@ type Tab =
   | "messages"
   | "newsletter";
 
+// Default order; each admin can rearrange it, remembered in this browser
 const TABS: { id: Tab; label: string }[] = [
-  { id: "users", label: "Users" },
-  { id: "events", label: "Events" },
-  { id: "patterns", label: "Resources" },
   { id: "machines", label: "Machines" },
+  { id: "sewing", label: "Waiting List" },
   { id: "donations", label: "Donations" },
   { id: "funding", label: "Funding" },
-  { id: "sewing", label: "Waiting List" },
+  { id: "events", label: "Events" },
+  { id: "patterns", label: "Resources" },
   { id: "partners", label: "Partners" },
   { id: "messages", label: "Messages" },
   { id: "newsletter", label: "Newsletter" },
+  { id: "users", label: "Users" },
 ];
+
+const TAB_ORDER_KEY = "admin-tab-order";
+
+/** The saved tab order, with any tabs added since it was saved put at the end */
+function loadTabOrder(): Tab[] {
+  const defaults = TABS.map(({ id }) => id);
+  try {
+    const saved = JSON.parse(localStorage.getItem(TAB_ORDER_KEY) || "[]");
+    if (!Array.isArray(saved)) return defaults;
+    const known = saved.filter((id): id is Tab => defaults.includes(id));
+    return [...new Set([...known, ...defaults])];
+  } catch {
+    return defaults;
+  }
+}
+
+function saveTabOrder(order: Tab[] | null) {
+  try {
+    if (order) localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(order));
+    else localStorage.removeItem(TAB_ORDER_KEY);
+  } catch {
+    // Private browsing etc.: the order just isn't remembered
+  }
+}
 
 type SewingFilter = "open" | "done" | "all";
 
@@ -118,12 +143,23 @@ export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
   const router = useRouter();
   // Notifications link straight to a tab, e.g. /admin?tab=messages
+  const [tabOrder, setTabOrder] = useState<Tab[]>(() =>
+    typeof window !== "undefined" ? loadTabOrder() : TABS.map(({ id }) => id)
+  );
+  const [editingTabs, setEditingTabs] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const requested = typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("tab")
       : null;
-    return TABS.find(({ id }) => id === requested)?.id ?? "users";
+    return TABS.find(({ id }) => id === requested)?.id ?? tabOrder[0];
   });
+  const moveTab = (index: number, step: -1 | 1) =>
+    setTabOrder((order) => {
+      const next = [...order];
+      [next[index], next[index + step]] = [next[index + step], next[index]];
+      saveTabOrder(next);
+      return next;
+    });
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -648,18 +684,65 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <div className={styles.tabs} role="tablist">
-        {TABS.map(({ id, label }) => (
+      <div className={styles.tabsBar}>
+        <div className={styles.tabs} role="tablist">
+          {tabOrder.map((id, index) => {
+            const label = TABS.find((t) => t.id === id)!.label;
+            return editingTabs ? (
+              <span key={id} className={`${styles.tab} ${styles.tabEditing}`}>
+                <button
+                  type="button"
+                  onClick={() => moveTab(index, -1)}
+                  disabled={index === 0}
+                  aria-label={`Move ${label} earlier`}
+                >
+                  ←
+                </button>
+                {label}
+                <button
+                  type="button"
+                  onClick={() => moveTab(index, 1)}
+                  disabled={index === tabOrder.length - 1}
+                  aria-label={`Move ${label} later`}
+                >
+                  →
+                </button>
+              </span>
+            ) : (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={activeTab === id}
+                className={`${styles.tab} ${activeTab === id ? styles.activeTab : ""}`}
+                onClick={() => setActiveTab(id)}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <div className={styles.tabsActions}>
+          {editingTabs && (
+            <button
+              type="button"
+              className={styles.tabsEditButton}
+              onClick={() => {
+                setTabOrder(TABS.map(({ id }) => id));
+                saveTabOrder(null);
+              }}
+            >
+              Reset
+            </button>
+          )}
           <button
-            key={id}
-            role="tab"
-            aria-selected={activeTab === id}
-            className={`${styles.tab} ${activeTab === id ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab(id)}
+            type="button"
+            className={styles.tabsEditButton}
+            aria-pressed={editingTabs}
+            onClick={() => setEditingTabs((e) => !e)}
           >
-            {label}
+            {editingTabs ? "Done" : "Edit order"}
           </button>
-        ))}
+        </div>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
