@@ -2,9 +2,7 @@ import { after, NextRequest, NextResponse } from "next/server"
 import { db, FieldValue } from "@/lib/firebaseAdmin"
 import { notifyAdmins } from "@/lib/pushNotifications"
 import { requireAdmin } from "@/lib/adminAuth"
-import { OPEN_STATUSES } from "@/lib/sewingMachines"
-
-const APPLICANT_TYPES = ["individual", "communityGroup"]
+import { OPEN_STATUSES, parseApplicationDetails, requestSummary } from "@/lib/sewingMachines"
 
 export async function GET(request: NextRequest) {
   const denied = await requireAdmin(request)
@@ -31,53 +29,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "")
-    const applicantType = clean(body.applicantType)
-    const groupName = clean(body.groupName)
-    const fullName = clean(body.fullName)
-    const email = clean(body.email)
-    const phone = clean(body.phone)
-    const area = clean(body.area)
-
-    // Validate required fields
-    if (!applicantType || !fullName || !email || !phone || !area) {
-      return NextResponse.json(
-        { error: "All required fields must be filled in" },
-        { status: 400 }
-      )
-    }
-
-    if (!APPLICANT_TYPES.includes(applicantType)) {
-      return NextResponse.json(
-        { error: "Invalid applicant type" },
-        { status: 400 }
-      )
-    }
-
-    if (applicantType === "communityGroup" && !groupName) {
-      return NextResponse.json(
-        { error: "Organisation name is required" },
-        { status: 400 }
-      )
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      )
+    const details = parseApplicationDetails(await request.json())
+    if (typeof details === "string") {
+      return NextResponse.json({ error: details }, { status: 400 })
     }
 
     await db.collection("sewingMachineApplications").add({
-      applicantType,
-      groupName: applicantType === "communityGroup" ? groupName : null,
-      fullName,
-      email,
-      phone,
-      area,
+      ...details,
+      // Exactly what they sent, kept even if an admin later corrects the details above
+      original: details,
       status: "waiting",
       createdAt: FieldValue.serverTimestamp(),
     })
@@ -92,7 +52,7 @@ export async function POST(request: NextRequest) {
     after(() =>
       notifyAdmins({
         title: "New sewing machine request",
-        body: `${applicantType === "communityGroup" ? `${groupName} (${fullName})` : fullName}, ${area}`,
+        body: `${details.groupName ? `${details.groupName} (${details.fullName})` : details.fullName}, ${details.area}: ${requestSummary(details.request)}`,
         url: "/admin?tab=sewing",
       })
     )

@@ -1,18 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import {
+  APPLICATION_AREAS as AREAS,
+  ApplicantType,
+  MachineRequest,
+  requestTotal,
+} from "@/lib/sewingMachines";
+import MachineRequestPicker, { fitRequest } from "./MachineRequestPicker";
 import styles from "./SewingMachineForm.module.css";
-
-const AREAS = [
-  "West Auckland",
-  "Central Auckland",
-  "North Shore",
-  "East Auckland",
-  "South Auckland",
-  "Rodney / North of Auckland",
-  "Franklin / South of Auckland",
-  "Outside Auckland",
-];
 
 const emptyForm = {
   applicantType: "",
@@ -21,6 +17,8 @@ const emptyForm = {
   email: "",
   phone: "",
   area: "",
+  // Nothing chosen yet: individuals pick one, organisations set how many
+  request: { sewingMachine: 0, overlocker: 0 } as MachineRequest,
 };
 
 export default function SewingMachineForm() {
@@ -31,14 +29,18 @@ export default function SewingMachineForm() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((form) => ({
+      ...form,
+      [name]: value,
+      // Switching to an individual keeps just one machine
+      ...(name === "applicantType" ? { request: fitRequest(form.request, value as ApplicantType) } : {}),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (requestTotal(formData.request) === 0) return;
     setStatus("loading");
 
     try {
@@ -110,6 +112,23 @@ export default function SewingMachineForm() {
           </label>
         </div>
       </fieldset>
+
+      {formData.applicantType && (
+        <fieldset className={styles.fieldset} disabled={disabled}>
+          <legend className={styles.label}>
+            {formData.applicantType === "communityGroup" ? "Which machines, and how many? *" : "Which machine? *"}
+          </legend>
+          {formData.applicantType === "communityGroup" && (
+            <p className={styles.hint}>Ask for a mix if you need both.</p>
+          )}
+          <MachineRequestPicker
+            applicantType={formData.applicantType as ApplicantType}
+            value={formData.request}
+            onChange={(request) => setFormData((form) => ({ ...form, request }))}
+            disabled={disabled}
+          />
+        </fieldset>
+      )}
 
       {formData.applicantType === "communityGroup" && (
         <div className={styles.formGroup}>

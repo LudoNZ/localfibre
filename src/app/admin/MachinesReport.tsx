@@ -49,7 +49,7 @@ function downloadMachinesCsv(machines: SewingMachine[], purchases: Purchase[]) {
     "Email",
     "From waiting list",
     "Assigned",
-    "Handed over",
+    "Rehomed",
     "Service parts",
     "Volunteer hours",
     "Parts spend (NZD)",
@@ -151,7 +151,7 @@ export default function MachinesReport({
           ))}
           <div className={styles.stat}>
             <span className={styles.statNumber}>{assigned}</span>
-            <span className={styles.statLabel}>Assigned, not handed over</span>
+            <span className={styles.statLabel}>Assigned, not rehomed yet</span>
           </div>
           <div className={styles.stat}>
             <span className={styles.statNumber}>{unassigned}</span>
@@ -167,7 +167,7 @@ export default function MachinesReport({
             <tr>
               <th>Type</th>
               <th>Machines</th>
-              <th>Handed over</th>
+              <th>Rehomed</th>
               <th>Avg condition</th>
             </tr>
           </thead>
@@ -191,7 +191,7 @@ export default function MachinesReport({
             <tr>
               <th>Brand / model</th>
               <th>Machines</th>
-              <th>Handed over</th>
+              <th>Rehomed</th>
               <th>Avg condition</th>
             </tr>
           </thead>
@@ -278,11 +278,11 @@ export default function MachinesReport({
         <h3 className={styles.libraryHeading}>Last 12 months</h3>
         <div className={styles.legend}>
           <span className={styles.legendLogged}>Logged</span>
-          <span className={styles.legendHanded}>Handed over</span>
+          <span className={styles.legendHanded}>Rehomed</span>
         </div>
         <div className={styles.months}>
           {months.map((m) => (
-            <div key={m.key} className={styles.month} title={`${m.label}: ${m.logged} logged, ${m.handedOver} handed over`}>
+            <div key={m.key} className={styles.month} title={`${m.label}: ${m.logged} logged, ${m.handedOver} rehomed`}>
               <div className={styles.monthBars}>
                 <span className={styles.barLogged} style={{ height: `${(m.logged / busiest) * 100}%` }} />
                 <span className={styles.barHanded} style={{ height: `${(m.handedOver / busiest) * 100}%` }} />

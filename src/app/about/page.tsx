@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import styles from "./page.module.css"
 import PhotoFrame from "@/components/ui/PhotoFrame"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
 import PartnersList from "@/components/ui/PartnersList"
-import { site, team, values } from "@/data/site"
+import { team } from "@/data/site"
 import { getSitePhotos } from "@/lib/sitePhotos"
+import { getSiteText } from "@/lib/siteText"
+import EditableText from "@/components/text/EditableText"
 
 export const dynamic = "force-dynamic"
 
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AboutPage() {
-  const photos = await getSitePhotos()
+  const [photos, t] = await Promise.all([getSitePhotos(), getSiteText()])
 
   return (
     <div className={styles.page}>
@@ -26,9 +27,7 @@ export default async function AboutPage() {
           <div>
             <SectionHeading
               as="h1"
-              eyebrow="About us"
-              title="Sewing, mending and community in West Auckland"
-              intro={site.mission}
+              editable={{ text: t, eyebrow: "about.hero.eyebrow", title: "about.hero.title", intro: "site.mission" }}
               align="left"
             />
           </div>
@@ -49,21 +48,11 @@ export default async function AboutPage() {
       <section className={styles.storySection}>
         <div className={`container ${styles.twoCol}`}>
           <div>
-            <span className="eyebrow">Our story</span>
-            <h2>Why Local Fibre exists</h2>
+            <EditableText id="about.story.eyebrow" text={t["about.story.eyebrow"]} className="eyebrow" />
+            <EditableText id="about.story.title" text={t["about.story.title"]} as="h2" />
           </div>
           <div className={styles.prose}>
-            {/* TODO: replace with the Local Fibre story in your own words */}
-            <p>
-              Local Fibre offers welcoming spaces for fibre crafters of all kinds (sewists,
-              knitters, stitchers, upcyclers, weavers and curious beginners) to gather, share skills
-              and spark inspiration.
-            </p>
-            <p>
-              We run social sewing sessions and fabric swap events, share free patterns, and through our{" "}
-              <Link href="/repair-programme">Sewing Machine Repair Programme</Link> we service donated
-              machines and rehome them with people and groups who will use them.
-            </p>
+            <EditableText id="about.story.body" text={t["about.story.body"]} as="p" />
           </div>
         </div>
       </section>
@@ -72,12 +61,12 @@ export default async function AboutPage() {
 
       <section className={styles.valuesSection}>
         <div className="container">
-          <SectionHeading eyebrow="What guides us" title="Our values" />
+          <SectionHeading editable={{ text: t, eyebrow: "about.values.eyebrow", title: "about.values.title" }} />
           <ul className={styles.values}>
-            {values.map((value, i) => (
-              <li key={value.title} className={`card-retro ${styles.valueCard} ${styles[`tone${i}`]}`}>
-                <h3>{value.title}</h3>
-                <p>{value.text}</p>
+            {([1, 2, 3] as const).map((n, i) => (
+              <li key={n} className={`card-retro ${styles.valueCard} ${styles[`tone${i}`]}`}>
+                <EditableText id={`about.value${n}.title`} text={t[`about.value${n}.title`]} as="h3" />
+                <EditableText id={`about.value${n}.text`} text={t[`about.value${n}.text`]} as="p" />
               </li>
             ))}
           </ul>
@@ -115,15 +104,11 @@ export default async function AboutPage() {
       <section className={styles.whereSection}>
         <div className={`container ${styles.twoCol}`}>
           <div>
-            <span className="eyebrow">Where we work</span>
-            <h2>Rooted in West Auckland</h2>
+            <EditableText id="about.where.eyebrow" text={t["about.where.eyebrow"]} className="eyebrow" />
+            <EditableText id="about.where.title" text={t["about.where.title"]} as="h2" />
           </div>
           <div className={styles.prose}>
-            <p>
-              Our events run in West Auckland, and sewing machines from our programme are
-              collected from West Auckland.
-            </p>
-            <p>{site.orgStatus}</p>
+            <EditableText id="about.where.body" text={t["about.where.body"]} as="p" />
           </div>
         </div>
       </section>
@@ -133,15 +118,15 @@ export default async function AboutPage() {
       <section className={styles.partnersSection}>
         <div className="container">
           <SectionHeading
-            eyebrow="Thank you"
-            title="Partners & supporters"
-            intro="We couldn't do this without the venues, groups and people who support us."
+            editable={{
+              text: t,
+              eyebrow: "about.partners.eyebrow",
+              title: "about.partners.title",
+              intro: "about.partners.intro",
+            }}
           />
           <PartnersList />
-          <p className={styles.partnerCta}>
-            Interested in partnering with us or supporting the programme?{" "}
-            <a href={`mailto:${site.email}`}>Get in touch</a>.
-          </p>
+          <EditableText id="about.partners.cta" text={t["about.partners.cta"]} as="p" className={styles.partnerCta} />
         </div>
       </section>
     </div>

@@ -625,7 +625,7 @@ export default function MachineForm({
           )}
           {isHandedOver && (
             <div className={adminStyles.formGroup}>
-              <label htmlFor="machine-handed-over">Handed over</label>
+              <label htmlFor="machine-handed-over">Rehomed</label>
               <input
                 id="machine-handed-over"
                 type="date"
@@ -640,7 +640,7 @@ export default function MachineForm({
         </div>
         {!editing && (
           <p className={styles.hint}>
-            Logging an older machine? Set the date it came in, then assign it and use &ldquo;Mark handed over&rdquo; to
+            Logging an older machine? Set the date it came in, then assign it and use &ldquo;Mark rehomed&rdquo; to
             choose when it went out.
           </p>
         )}

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { User } from "firebase/auth";
-import type { MachineBrand, MachineType } from "@/lib/sewingMachines";
+import type { ApplicationMachines, MachineBrand, MachineType } from "@/lib/sewingMachines";
 import { sameName } from "@/lib/sewingMachines";
 import type { Receipt } from "@/lib/funding";
 import { optimiseImage } from "@/lib/imageUpload";
@@ -78,7 +78,7 @@ export interface MachineLibrary {
   brands: MachineBrand[];
 }
 
-export interface WaitingApplication {
+export interface WaitingApplication extends ApplicationMachines {
   id: string;
   fullName: string;
   email: string;
@@ -86,7 +86,6 @@ export interface WaitingApplication {
   applicantType: "individual" | "communityGroup";
   groupName: string | null;
   status: string;
-  machineId?: string;
   createdAt: string | null;
 }
 

@@ -8,9 +8,10 @@ import ImpactStats from "@/components/ui/ImpactStats"
 import PhotoFrame from "@/components/ui/PhotoFrame"
 import SectionHeading from "@/components/ui/SectionHeading"
 import WaveDivider from "@/components/ui/WaveDivider"
-import { site } from "@/data/site"
 import { getOrganisations } from "@/lib/organisations"
 import PartnersList from "@/components/ui/PartnersList"
+import { getSiteText } from "@/lib/siteText"
+import EditableText from "@/components/text/EditableText"
 
 export const dynamic = "force-dynamic"
 
@@ -20,27 +21,15 @@ export const metadata: Metadata = {
     "Local Fibre collects donated sewing machines, services them, and rehomes them with individuals and community groups in Auckland, keeping them out of landfill.",
 }
 
-const steps = [
-  {
-    title: "Donated",
-    text: "People and organisations give us sewing machines they no longer use, instead of storing them or throwing them away.",
-  },
-  {
-    title: "Serviced & repaired",
-    text: "Each machine is cleaned, checked and repaired, then logged with its details and photos so we know its history.",
-  },
-  {
-    title: "Rehomed",
-    text: "Ready machines are matched with people on our waiting list, in order, and collected from West Auckland.",
-  },
-]
+const steps = [1, 2, 3] as const
 
 export default async function RepairProgrammePage() {
-  const [impact, gallery, photos, machineRecipients] = await Promise.all([
+  const [impact, gallery, photos, machineRecipients, t] = await Promise.all([
     getImpactNumbers(),
     getRepurposedGallery(),
     getSitePhotos(),
     getOrganisations("recipient"),
+    getSiteText(),
   ])
 
   return (
@@ -50,9 +39,7 @@ export default async function RepairProgrammePage() {
           <div>
             <SectionHeading
               as="h1"
-              eyebrow="Our programme"
-              title="Sewing Machine Repair Programme"
-              intro="We give unused sewing machines a second life. Donated machines are serviced and rehomed with people and community groups who will use them, keeping them out of landfill and putting a valuable skill within reach."
+              editable={{ text: t, eyebrow: "repair.hero.eyebrow", title: "repair.hero.title", intro: "repair.hero.intro" }}
               align="left"
             />
             <div className={styles.ctas}>
@@ -81,22 +68,11 @@ export default async function RepairProgrammePage() {
       <section className={styles.problemSection}>
         <div className={`container ${styles.twoCol}`}>
           <div>
-            <span className="eyebrow">Why it matters</span>
-            <h2>Good machines shouldn&apos;t go to waste</h2>
+            <EditableText id="repair.problem.eyebrow" text={t["repair.problem.eyebrow"]} className="eyebrow" />
+            <EditableText id="repair.problem.title" text={t["repair.problem.title"]} as="h2" />
           </div>
           <div className={styles.prose}>
-            <p>
-              Many households have a sewing machine sitting unused in a cupboard, and working
-              machines regularly end up in landfill when they need little more than a service.
-            </p>
-            <p>
-              At the same time, a sewing machine is out of reach for many people who want to mend
-              their clothes, learn a skill or make things for their whānau and community.
-            </p>
-            <p>
-              The programme connects the two: it reduces waste, extends the life of the textiles
-              people already own through mending, and builds sewing skills in the community.
-            </p>
+            <EditableText id="repair.problem.body" text={t["repair.problem.body"]} as="p" />
           </div>
         </div>
       </section>
@@ -105,13 +81,16 @@ export default async function RepairProgrammePage() {
 
       <section className={styles.stepsSection}>
         <div className="container">
-          <SectionHeading eyebrow="How it works" title="From cupboard to community" tone="dark" />
+          <SectionHeading
+            editable={{ text: t, eyebrow: "repair.steps.eyebrow", title: "repair.steps.title" }}
+            tone="dark"
+          />
           <ol className={styles.steps}>
-            {steps.map((step, i) => (
-              <li key={step.title} className={styles.step}>
-                <span className={styles.stepNumber}>{i + 1}</span>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
+            {steps.map((n) => (
+              <li key={n} className={styles.step}>
+                <span className={styles.stepNumber}>{n}</span>
+                <EditableText id={`repair.step${n}.title`} text={t[`repair.step${n}.title`]} as="h3" />
+                <EditableText id={`repair.step${n}.text`} text={t[`repair.step${n}.text`]} as="p" />
               </li>
             ))}
           </ol>
@@ -132,9 +111,12 @@ export default async function RepairProgrammePage() {
         <section className={styles.recipientsSection}>
           <div className="container">
             <SectionHeading
-              eyebrow="Where machines have gone"
-              title="Sewing machines in the community"
-              intro="As well as individuals, machines from the programme have gone to community organisations including:"
+              editable={{
+                text: t,
+                eyebrow: "repair.recipients.eyebrow",
+                title: "repair.recipients.title",
+                intro: "repair.recipients.intro",
+              }}
             />
             <PartnersList group="recipient" />
           </div>
@@ -144,7 +126,7 @@ export default async function RepairProgrammePage() {
       {gallery.length > 0 && (
         <section className={styles.gallerySection}>
           <div className="container">
-            <SectionHeading eyebrow="Rehomed" title="Machines with new homes" />
+            <SectionHeading editable={{ text: t, eyebrow: "repair.gallery.eyebrow", title: "repair.gallery.title" }} />
             <ul className={styles.gallery}>
               {gallery.map((machine) => (
                 <li key={machine.id} className={`card-retro ${styles.galleryItem}`}>
@@ -169,19 +151,11 @@ export default async function RepairProgrammePage() {
       <section className={styles.whoSection}>
         <div className={`container ${styles.twoCol}`}>
           <div>
-            <span className="eyebrow">Who it helps</span>
-            <h2>Individuals and community groups</h2>
+            <EditableText id="repair.who.eyebrow" text={t["repair.who.eyebrow"]} className="eyebrow" />
+            <EditableText id="repair.who.title" text={t["repair.who.title"]} as="h2" />
           </div>
           <div className={styles.prose}>
-            <p>
-              Anyone can apply, whether for themselves or on behalf of a community group or
-              organisation. Applicants join a waiting list and are matched with machines in the
-              order they applied.
-            </p>
-            <p>
-              Machines are collected from West Auckland, so we prioritise applicants who live in or
-              near West Auckland.
-            </p>
+            <EditableText id="repair.who.body" text={t["repair.who.body"]} as="p" />
             <div className={styles.ctas}>
               <Link href="/sewing-machines" className="btn-primary">
                 Join the waiting list
@@ -199,20 +173,11 @@ export default async function RepairProgrammePage() {
       <section className={styles.alignSection}>
         <div className={`container ${styles.twoCol}`}>
           <div>
-            <span className="eyebrow">Our bigger goal</span>
-            <h2>Part of a zero-waste Tāmaki Makaurau</h2>
+            <EditableText id="repair.goal.eyebrow" text={t["repair.goal.eyebrow"]} className="eyebrow" />
+            <EditableText id="repair.goal.title" text={t["repair.goal.title"]} as="h2" />
           </div>
           <div className={styles.prose}>
-            {/* TODO: check this matches Auckland Council's current waste plan wording */}
-            <p>
-              Repairing and rehoming sewing machines, and teaching people to mend, keeps products
-              and textiles in use for longer. This supports Auckland&apos;s goal of working towards
-              zero waste by 2040.
-            </p>
-            <p>
-              Want to support or partner with the programme? Get in touch at{" "}
-              <a href={`mailto:${site.email}`}>{site.email}</a>.
-            </p>
+            <EditableText id="repair.goal.body" text={t["repair.goal.body"]} as="p" />
           </div>
         </div>
       </section>
@@ -221,8 +186,8 @@ export default async function RepairProgrammePage() {
 
       <section className={styles.ctaSection}>
         <div className={`container ${styles.ctaInner}`}>
-          <h2>Have a machine you no longer use?</h2>
-          <p>Donate it, and we&apos;ll make sure it gets back into a maker&apos;s hands.</p>
+          <EditableText id="repair.cta.title" text={t["repair.cta.title"]} as="h2" />
+          <EditableText id="repair.cta.text" text={t["repair.cta.text"]} as="p" />
           <div className={styles.ctas}>
             <Link href="/donate-machine" className="btn-primary">
               Donate a machine

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/context/AuthContext";
+import { TextEditProvider } from "@/components/text/TextEditContext";
 import InstallPrompt from "@/components/ui/InstallPrompt";
 import NotificationPrompt from "@/components/ui/NotificationPrompt";
 import promptStyles from "@/components/ui/InstallPrompt.module.css";
@@ -57,6 +58,7 @@ export default function RootLayout({
     <html lang="en-NZ" className={`${inter.variable} ${fraunces.variable}`}>
       <body>
         <AuthProvider>
+          <TextEditProvider>
           <Header />
           <main>{children}</main>
           <Footer />
@@ -64,6 +66,7 @@ export default function RootLayout({
             <NotificationPrompt />
             <InstallPrompt />
           </div>
+          </TextEditProvider>
         </AuthProvider>
       </body>
     </html>

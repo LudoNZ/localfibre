@@ -1439,3 +1439,23 @@
     transform: rotate(180deg);
   }
 }
+
+.specRow {
+  display: contents;
+}
+
+.originalDetails {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px dashed var(--color-accent-clay);
+  border-radius: 8px;
+  font-size: 0.92rem;
+}
+
+.originalDetails summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.originalDetails[open] summary {
+  margin-bottom: var(--spacing-xs);
+}

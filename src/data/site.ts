@@ -41,18 +41,3 @@ export interface TeamMember {
  * { name: "Your Name", role: "Founder & coordinator", bio: "A short paragraph…", photo: photos.founder },
  */
 export const team: TeamMember[] = []
-
-export const values = [
-  {
-    title: "Sustainability",
-    text: "Promoting zero-waste practices, reuse, repair and mindful use of textile resources.",
-  },
-  {
-    title: "Shared learning",
-    text: "Welcoming spaces where everyone can learn, teach and grow together, whatever their skill level.",
-  },
-  {
-    title: "Community",
-    text: "Bringing people together through making, mending and conversation, right here in West Auckland.",
-  },
-]

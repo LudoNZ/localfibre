@@ -8,6 +8,7 @@ import {
   MACHINE_STATUS_LABELS,
   MachineStatus,
   OPEN_STATUSES,
+  machinesStillNeeded,
   SewingMachine,
   WorkshopStatus,
   isAwaitingParts,
@@ -44,7 +45,7 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "awaitingParts", label: "Awaiting parts" },
   { id: "ready", label: "Ready to go" },
   { id: "assigned", label: "Assigned" },
-  { id: "repurposed", label: "Handed over" },
+  { id: "repurposed", label: "Rehomed" },
 ];
 
 // Promised to someone but not handed over yet
@@ -140,10 +141,10 @@ export default function MachinesPanel({ user }: { user: User | null }) {
     await Promise.all([loadLibrary(), loadData()]);
   }, [loadLibrary, loadData]);
 
-  // People still waiting without a machine, oldest application first
+  // People still waiting for one or more machines, oldest application first
   const openApplications = applications.filter((app) => OPEN_STATUSES.includes(app.status as never));
   const queueNumbers = new Map(openApplications.map((app, i) => [app.id, i + 1]));
-  const assignable = openApplications.filter((app) => !app.machineId);
+  const assignable = openApplications.filter((app) => machinesStillNeeded(app) > 0);
 
   const countFor = (id: Filter) => machines.filter((m) => matchesFilter(m, id)).length;
   const visible = machines.filter((m) => matchesFilter(m, filter));
@@ -298,7 +299,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
         </div>
         <div className={styles.stat}>
           <span className={styles.statNumber}>{handedOverCount}</span>
-          <span className={styles.statLabel}>Handed over</span>
+          <span className={styles.statLabel}>Rehomed</span>
         </div>
       </div>
 
@@ -441,7 +442,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
 
                       {machine.recipient && (
                         <div className={styles.recipient}>
-                          <p className={styles.recipientLabel}>{handedOver ? "Given to" : "Assigned to"}</p>
+                          <p className={styles.recipientLabel}>{handedOver ? "Rehomed with" : "Assigned to"}</p>
                           <p className={styles.recipientName}>
                             {machine.recipient.fullName}
                             {machine.recipient.groupName && ` (${machine.recipient.groupName})`}
@@ -460,7 +461,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
                           <p className={styles.recipientDates}>
                             {machine.recipient.applicationId ? "From the waiting list · " : ""}
                             Assigned {formatDate(machine.assignedAt)}
-                            {machine.repurposedAt && ` · Handed over ${formatDate(machine.repurposedAt)}`}
+                            {machine.repurposedAt && ` · Rehomed ${formatDate(machine.repurposedAt)}`}
                           </p>
                         </div>
                       )}
@@ -490,7 +491,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
                               className="btn-secondary"
                               onClick={() => setHandingOver({ machine, date: today() })}
                             >
-                              Mark handed over
+                              Mark rehomed
                             </button>
                           </>
                         )}
@@ -567,16 +568,16 @@ export default function MachinesPanel({ user }: { user: User | null }) {
       <EditModal
         isOpen={!!handingOver}
         onClose={() => setHandingOver(null)}
-        title={handingOver ? `Hand over ${machineLabel(handingOver.machine)}` : "Hand over"}
+        title={handingOver ? `Rehome ${machineLabel(handingOver.machine)}` : "Rehome"}
       >
         {handingOver && (
           <form onSubmit={handOver} className={`${adminStyles.form} ${styles.modalForm}`}>
             {error && <div className={adminStyles.error}>{error}</div>}
             <p className={styles.hint}>
-              To <strong>{handingOver.machine.recipient?.fullName}</strong>. This adds it to the handed-over log.
+              To <strong>{handingOver.machine.recipient?.fullName}</strong>. This adds it to the rehomed log.
             </p>
             <div className={adminStyles.formGroup}>
-              <label htmlFor="handover-date">Handed over on</label>
+              <label htmlFor="handover-date">Rehomed on</label>
               <input
                 id="handover-date"
                 type="date"
@@ -588,7 +589,7 @@ export default function MachinesPanel({ user }: { user: User | null }) {
               />
             </div>
             <button type="submit" className="btn-primary" disabled={saving || !handingOver.date}>
-              {saving ? "Saving..." : "Mark handed over"}
+              {saving ? "Saving..." : "Mark rehomed"}
             </button>
           </form>
         )}

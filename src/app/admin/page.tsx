@@ -11,10 +11,17 @@ import MachinesPanel from "./MachinesPanel";
 import FundingPanel from "./FundingPanel";
 import DonationsPanel from "./DonationsPanel";
 import PartnersPanel from "./PartnersPanel";
+import ApplicationEditor from "./ApplicationEditor";
 import {
   APPLICATION_STATUSES,
+  ApplicationDetails,
+  ApplicationMachines,
   ApplicationStatus,
+  assignedMachines,
+  machinesStillNeeded,
+  OriginalApplication,
   OPEN_STATUSES,
+  requestSummary,
   STATUS_LABELS,
 } from "@/lib/sewingMachines";
 
@@ -65,16 +72,11 @@ interface Subscriber {
   createdAt: string | null;
 }
 
-interface SewingApplication {
+interface SewingApplication extends ApplicationDetails, Omit<ApplicationMachines, "request"> {
   id: string;
-  applicantType: "individual" | "communityGroup";
-  groupName: string | null;
-  fullName: string;
-  email: string;
-  phone: string;
-  area: string;
   status: ApplicationStatus;
-  machineNumber?: number;
+  original?: OriginalApplication;
+  editedAt?: unknown;
   createdAt: string | null;
 }
 
@@ -168,6 +170,7 @@ export default function AdminPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [applications, setApplications] = useState<SewingApplication[]>([]);
   const [sewingFilter, setSewingFilter] = useState<SewingFilter>("open");
+  const [editingApplication, setEditingApplication] = useState<SewingApplication | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
 
@@ -1489,22 +1492,39 @@ export default function AdminPage() {
                       {app.groupName && (
                         <p className={styles.eventMeta}>Organisation: {app.groupName}</p>
                       )}
+                      <p className={styles.applicationRequest}>Wants: {requestSummary(app.request)}</p>
                       <p className={styles.applicationContact}>
                         <a href={`mailto:${app.email}`}>{app.email}</a>
                         <a href={`tel:${app.phone.replace(/[^\d+]/g, "")}`}>{app.phone}</a>
                       </p>
-                      {app.machineNumber && (
-                        <p className={styles.eventMeta}>Assigned machine #{app.machineNumber}</p>
+                      {assignedMachines(app).length > 0 && (
+                        <p className={styles.eventMeta}>
+                          Assigned machine{assignedMachines(app).length > 1 ? "s" : ""}{" "}
+                          {assignedMachines(app)
+                            .map((m) => `#${m.number}`)
+                            .join(", ")}
+                          {machinesStillNeeded(app) > 0 && ` · ${machinesStillNeeded(app)} still to find`}
+                        </p>
                       )}
-                      <p className={styles.messageDate}>Applied {formatShortDate(app.createdAt)}</p>
+                      <p className={styles.messageDate}>
+                        Applied {formatShortDate(app.createdAt)}
+                        {app.editedAt ? " · edited by an admin" : ""}
+                      </p>
+                      <button
+                        type="button"
+                        className={styles.applicationEdit}
+                        onClick={() => setEditingApplication(app)}
+                      >
+                        Edit details
+                      </button>
                     </div>
                     <div className={styles.applicationStatus}>
                       <label htmlFor={`status-${app.id}`}>Status</label>
                       <select
                         id={`status-${app.id}`}
                         value={app.status}
-                        disabled={!!app.machineNumber}
-                        title={app.machineNumber ? "Managed from the Machines tab" : undefined}
+                        disabled={assignedMachines(app).length > 0}
+                        title={assignedMachines(app).length > 0 ? "Managed from the Machines tab" : undefined}
                         onChange={(e) =>
                           handleUpdateApplicationStatus(app.id, e.target.value as ApplicationStatus)
                         }
@@ -1523,6 +1543,18 @@ export default function AdminPage() {
           )}
         </div>
       )}
+
+      <ApplicationEditor
+        user={user}
+        application={editingApplication}
+        onClose={() => setEditingApplication(null)}
+        onSaved={(id, details, original) => {
+          setApplications((apps) =>
+            apps.map((app) => (app.id === id ? { ...app, ...details, original, editedAt: true } : app))
+          );
+          setEditingApplication(null);
+        }}
+      />
 
       {activeTab === "messages" && (
         <div className={styles.section}>

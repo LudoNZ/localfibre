@@ -1,0 +1,141 @@
+/* Paragraphs keep their normal layout when not editing */
+.group {
+  display: contents;
+}
+
+.editable {
+  outline: 2px dashed var(--mustard);
+  outline-offset: 3px;
+  border-radius: 4px;
+  cursor: text;
+  transition: background-color 0.15s ease, outline-color 0.15s ease;
+}
+
+.editable:hover,
+.editable:focus-visible {
+  outline-style: solid;
+  outline-color: var(--ink);
+  background-color: rgba(224, 165, 38, 0.18);
+}
+
+/* Links inside text being edited open the editor instead */
+.editable a {
+  pointer-events: none;
+}
+
+.toggle {
+  position: fixed;
+  left: var(--spacing-sm);
+  bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom));
+  z-index: 1500;
+  padding: 0.55rem 1.1rem;
+  min-height: 44px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: var(--cream);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sticker-sm);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.toggleOn {
+  background: var(--mustard);
+}
+
+.banner {
+  position: fixed;
+  top: calc(var(--spacing-sm) + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1500;
+  margin: 0;
+  padding: 0.45rem 1rem;
+  max-width: calc(100vw - 2rem);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-body);
+  background: white;
+  border: 2px solid var(--color-accent-clay);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-body);
+  opacity: 0.8;
+}
+
+.original {
+  font-size: 0.9rem;
+}
+
+.original summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.original p {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  white-space: pre-line;
+  background: var(--color-background-soft);
+  border-radius: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.reset {
+  background: none;
+  border: none;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  color: var(--color-heading);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  color: #8b1a1a;
+  background: #fdecea;
+  border-radius: 8px;
+}

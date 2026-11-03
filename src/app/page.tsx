@@ -15,34 +15,25 @@ import WaveDivider from "@/components/ui/WaveDivider"
 import PartnersList from "@/components/ui/PartnersList"
 import { site } from "@/data/site"
 import { getOrganisations } from "@/lib/organisations"
+import { getSiteText } from "@/lib/siteText"
+import EditableText from "@/components/text/EditableText"
 
 export const dynamic = "force-dynamic"
 
 const offerings = [
-  {
-    title: "Social sewing",
-    text: "Relaxed sessions where makers of every skill level bring their own projects, share tips and enjoy good company.",
-    tone: "mustard",
-  },
-  {
-    title: "Fabric swap events",
-    text: "Bring the fabric, yarn, haberdashery and patterns you no longer need, and take home something new to you, keeping textiles in use and out of landfill.",
-    tone: "tan",
-  },
-  {
-    title: "Machine repair & rehoming",
-    text: "Donated sewing machines are serviced and given to people and community groups who will put them to use.",
-    tone: "olive",
-  },
+  { key: "offering1", tone: "mustard" },
+  { key: "offering2", tone: "tan" },
+  { key: "offering3", tone: "olive" },
 ] as const
 
 export default async function Home() {
-  const [events, patterns, impact, photos, machineRecipients] = await Promise.all([
+  const [events, patterns, impact, photos, machineRecipients, t] = await Promise.all([
     getEvents(),
     getPatterns(),
     getImpactNumbers(),
     getSitePhotos(),
     getOrganisations("recipient"),
+    getSiteText(),
   ])
   const upcomingEvents = events.filter((e) => e.isUpcoming)
   const pastEvents = events.filter((e) => !e.isUpcoming)
@@ -66,14 +57,16 @@ export default async function Home() {
       <section id="home" className={styles.hero}>
         <div className={`container ${styles.heroGrid}`}>
           <div className={styles.heroText}>
-            <span className="eyebrow">Community sewing · {site.region}</span>
+            <EditableText id="home.hero.eyebrow" text={t["home.hero.eyebrow"]} className="eyebrow" />
             <h1 className={styles.heroTitle}>
-              Mend. Make. <span className={styles.heroHighlight}>Connect.</span>
+              <EditableText id="home.hero.title" text={t["home.hero.title"]} />{" "}
+              <EditableText
+                id="home.hero.highlight"
+                text={t["home.hero.highlight"]}
+                className={styles.heroHighlight}
+              />
             </h1>
-            <p className={styles.heroTagline}>
-              Local Fibre brings people together to sew, mend and repair, and gives
-              donated sewing machines a second life with people who need them.
-            </p>
+            <EditableText id="home.hero.tagline" text={t["home.hero.tagline"]} as="p" className={styles.heroTagline} />
             <div className={styles.heroCTAs}>
               <Link href="/repair-programme" className="btn-primary">
                 Our Repair Programme
@@ -128,29 +121,37 @@ export default async function Home() {
         <div className={`container ${styles.programmeGrid}`}>
           <div>
             <SectionHeading
-              eyebrow="Our programme"
-              title="Sewing Machine Repair Programme"
-              intro="Good sewing machines too often end up in storage or landfill, while people who want to sew can't afford one. We collect donated machines, service them, and rehome them with individuals and community groups across Auckland."
+              editable={{
+                text: t,
+                eyebrow: "home.programme.eyebrow",
+                title: "home.programme.title",
+                intro: "home.programme.intro",
+              }}
               align="left"
               tone="dark"
             />
             <ol className={styles.steps}>
               <li>
                 <span className={styles.stepNumber}>1</span>
-                <span>Machines are donated</span>
+                <EditableText id="home.programme.step1" text={t["home.programme.step1"]} />
               </li>
               <li>
                 <span className={styles.stepNumber}>2</span>
-                <span>We service and repair them</span>
+                <EditableText id="home.programme.step2" text={t["home.programme.step2"]} />
               </li>
               <li>
                 <span className={styles.stepNumber}>3</span>
-                <span>They go to someone on our waiting list</span>
+                <EditableText id="home.programme.step3" text={t["home.programme.step3"]} />
               </li>
             </ol>
             {machineRecipients.length > 0 && (
               <div className={styles.recipients}>
-                <p className={styles.recipientsLabel}>Machines have gone to groups including</p>
+                <EditableText
+                  id="home.programme.recipients"
+                  text={t["home.programme.recipients"]}
+                  as="p"
+                  className={styles.recipientsLabel}
+                />
                 <ul>
                   {machineRecipients.map((org) => (
                     <li key={org.id}>{org.name}</li>
@@ -187,18 +188,16 @@ export default async function Home() {
       <section id="about" className={styles.offeringsSection}>
         <div className="container">
           <SectionHeading
-            eyebrow="What we do"
-            title="Making, mending and keeping textiles in use"
-            intro={site.mission}
+            editable={{ text: t, eyebrow: "home.about.eyebrow", title: "home.about.title", intro: "site.mission" }}
           />
           <div className={styles.offeringsGrid}>
             {offerings.map((item, i) => (
-              <article key={item.title} className={`card-retro ${styles.offeringCard}`}>
+              <article key={item.key} className={`card-retro ${styles.offeringCard}`}>
                 <span className={`${styles.offeringBadge} ${styles[item.tone]}`} aria-hidden="true">
                   0{i + 1}
                 </span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
+                <EditableText id={`home.${item.key}.title`} text={t[`home.${item.key}.title`]} as="h3" />
+                <EditableText id={`home.${item.key}.text`} text={t[`home.${item.key}.text`]} as="p" />
               </article>
             ))}
           </div>
@@ -214,9 +213,7 @@ export default async function Home() {
       <section id="events" className={styles.eventsSection}>
         <div className="container">
           <SectionHeading
-            eyebrow="Events"
-            title="Upcoming events"
-            intro="Join us for Social Sewing, Fabric Swaps and other community sewing events around West Auckland."
+            editable={{ text: t, eyebrow: "home.events.eyebrow", title: "home.events.title", intro: "home.events.intro" }}
           />
           {upcomingEvents.length > 0 ? (
             <div className={styles.eventsGrid}>
@@ -225,7 +222,7 @@ export default async function Home() {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>No upcoming events scheduled. Check back soon!</p>
+            <EditableText id="home.events.empty" text={t["home.events.empty"]} as="p" className={styles.emptyState} />
           )}
           {pastEvents.length > 0 && (
             <>
@@ -246,9 +243,12 @@ export default async function Home() {
       <section id="resources" className={styles.patternsSection}>
         <div className="container">
           <SectionHeading
-            eyebrow="Free to download"
-            title="Resources"
-            intro="Resource-sharing for a creative, low-waste Aotearoa."
+            editable={{
+              text: t,
+              eyebrow: "home.resources.eyebrow",
+              title: "home.resources.title",
+              intro: "home.resources.intro",
+            }}
           />
           {patterns.length > 0 ? (
             <div className={styles.patternsGrid}>
@@ -257,12 +257,14 @@ export default async function Home() {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>Resources coming soon! Check back later.</p>
+            <EditableText
+              id="home.resources.empty"
+              text={t["home.resources.empty"]}
+              as="p"
+              className={styles.emptyState}
+            />
           )}
-          <p className={styles.kohaText}>
-            All resources are free to download. If you&apos;d like to support our work, koha
-            (donation) options will be available soon.
-          </p>
+          <EditableText id="home.resources.koha" text={t["home.resources.koha"]} as="p" className={styles.kohaText} />
         </div>
       </section>
 
@@ -271,7 +273,10 @@ export default async function Home() {
       {/* Partners */}
       <section className={styles.partnersSection} aria-labelledby="partners-heading">
         <div className="container">
-          <SectionHeading eyebrow="Thank you" title="Partners & supporters" id="partners-heading" />
+          <SectionHeading
+            editable={{ text: t, eyebrow: "home.partners.eyebrow", title: "home.partners.title" }}
+            id="partners-heading"
+          />
           <PartnersList />
         </div>
       </section>
@@ -282,10 +287,18 @@ export default async function Home() {
       <section id="newsletter" className={styles.newsletterSection}>
         <div className={`container ${styles.newsletterInner}`}>
           <div>
-            <h2 className={styles.newsletterTitle}>Stay in the loop</h2>
-            <p className={styles.newsletterText}>
-              Updates on events, workshops, machines and community news. No spam, ever.
-            </p>
+            <EditableText
+              id="home.newsletter.title"
+              text={t["home.newsletter.title"]}
+              as="h2"
+              className={styles.newsletterTitle}
+            />
+            <EditableText
+              id="home.newsletter.text"
+              text={t["home.newsletter.text"]}
+              as="p"
+              className={styles.newsletterText}
+            />
           </div>
           <NewsletterForm />
         </div>
@@ -297,9 +310,7 @@ export default async function Home() {
       <section id="contact" className={styles.contactSection}>
         <div className="container">
           <SectionHeading
-            eyebrow="Contact"
-            title="Get in touch"
-            intro="Questions, a machine to donate, or want to get involved? We'd love to hear from you."
+            editable={{ text: t, eyebrow: "home.contact.eyebrow", title: "home.contact.title", intro: "home.contact.intro" }}
           />
           <div className={styles.contactContent}>
             <div className={styles.contactInfo}>
@@ -319,7 +330,7 @@ export default async function Home() {
               </div>
             </div>
             <div className={`card-retro ${styles.formWrapper}`}>
-              <h3>Send us a message</h3>
+              <EditableText id="home.contact.formTitle" text={t["home.contact.formTitle"]} as="h3" />
               <ContactForm />
             </div>
           </div>

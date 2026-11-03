@@ -2,6 +2,7 @@
 
 import adminStyles from "./Admin.module.css";
 import styles from "./MachinesPanel.module.css";
+import { assignedMachines, requestSummary } from "@/lib/sewingMachines";
 import { AssignChoice, WaitingApplication, formatDate } from "./machineShared";
 
 interface AssignFieldsProps {
@@ -70,7 +71,13 @@ export default function AssignFields({ value, onChange, assignable, queueNumbers
                       <strong>{app.fullName}</strong>
                       {app.groupName && <span> · {app.groupName}</span>}
                       <span className={styles.applicantMeta}>
-                        {app.area} · applied {formatDate(app.createdAt)}
+                        Wants {requestSummary(app.request).toLowerCase()}
+                        {assignedMachines(app).length > 0 &&
+                          ` (has ${assignedMachines(app)
+                            .map((m) => `#${m.number}`)
+                            .join(", ")})`}{" "}
+                        · {app.area} · applied{" "}
+                        {formatDate(app.createdAt)}
                       </span>
                     </span>
                   </label>

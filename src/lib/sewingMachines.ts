@@ -5,6 +5,133 @@ export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 // Applications with these statuses are still in the queue
 export const OPEN_STATUSES: ApplicationStatus[] = ["waiting", "contacted"]
 
+export const APPLICATION_AREAS = [
+  "West Auckland",
+  "Central Auckland",
+  "North Shore",
+  "East Auckland",
+  "South Auckland",
+  "Rodney / North of Auckland",
+  "Franklin / South of Auckland",
+  "Outside Auckland",
+]
+
+export const APPLICANT_TYPES = ["individual", "communityGroup"] as const
+
+export type ApplicantType = (typeof APPLICANT_TYPES)[number]
+
+// What someone can ask for. Individuals get one machine; organisations can ask for a mix.
+export const REQUEST_KINDS = {
+  sewingMachine: { one: "Sewing machine", many: "sewing machines" },
+  overlocker: { one: "Overlocker", many: "overlockers" },
+} as const
+
+export type RequestKind = keyof typeof REQUEST_KINDS
+
+export type MachineRequest = Record<RequestKind, number>
+
+// Applications from before people could choose asked for one sewing machine
+export const DEFAULT_REQUEST: MachineRequest = { sewingMachine: 1, overlocker: 0 }
+
+export const MAX_REQUEST_PER_KIND = 10
+
+export const requestTotal = (request: MachineRequest) =>
+  Object.values(request).reduce((sum, n) => sum + n, 0)
+
+/** e.g. "Overlocker" or "2 sewing machines + 1 overlocker" */
+export function requestSummary(request: MachineRequest = DEFAULT_REQUEST) {
+  const parts = (Object.keys(REQUEST_KINDS) as RequestKind[])
+    .filter((kind) => request[kind] > 0)
+    .map((kind) => ({ kind, n: request[kind] }))
+  if (parts.length === 1 && parts[0].n === 1) return REQUEST_KINDS[parts[0].kind].one
+  return parts
+    .map(({ kind, n }) => `${n} ${n === 1 ? REQUEST_KINDS[kind].one.toLowerCase() : REQUEST_KINDS[kind].many}`)
+    .join(" + ")
+}
+
+/** Check a request; returns an error message instead when it doesn't add up */
+function parseMachineRequest(value: unknown, applicantType: ApplicantType): MachineRequest | string {
+  const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>
+  const request = Object.fromEntries(
+    (Object.keys(REQUEST_KINDS) as RequestKind[]).map((kind) => {
+      const n = Number(raw[kind] ?? 0)
+      return [kind, Number.isInteger(n) ? n : -1]
+    })
+  ) as MachineRequest
+
+  if (Object.values(request).some((n) => n < 0 || n > MAX_REQUEST_PER_KIND)) return "Invalid number of machines"
+  const total = requestTotal(request)
+  if (total === 0) return "Choose which machine you'd like"
+  if (applicantType === "individual" && total > 1) return "Individuals can apply for one machine"
+  return request
+}
+
+/** The contact details on a waiting-list application, as an admin can edit them */
+export interface ApplicationDetails {
+  applicantType: ApplicantType
+  groupName: string | null
+  fullName: string
+  email: string
+  phone: string
+  area: string
+  request: MachineRequest
+}
+
+/** Check and tidy application details; returns an error message instead when they don't add up */
+export function parseApplicationDetails(body: Record<string, unknown>): ApplicationDetails | string {
+  const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "")
+  const applicantType = clean(body.applicantType) as ApplicantType
+  const groupName = clean(body.groupName)
+  const details = {
+    applicantType,
+    groupName: applicantType === "communityGroup" ? groupName : null,
+    fullName: clean(body.fullName),
+    email: clean(body.email),
+    phone: clean(body.phone),
+    area: clean(body.area),
+  }
+
+  if (!applicantType || !details.fullName || !details.email || !details.phone || !details.area) {
+    return "All required fields must be filled in"
+  }
+  if (!APPLICANT_TYPES.includes(applicantType)) return "Invalid applicant type"
+  if (applicantType === "communityGroup" && !groupName) return "Organisation name is required"
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)) return "Invalid email format"
+  const request = parseMachineRequest(body.request, applicantType)
+  if (typeof request === "string") return request
+  return { ...details, request }
+}
+
+/** A machine promised to someone on the waiting list */
+export interface AssignedMachine {
+  id: string
+  number: number
+}
+
+/** The fields an application has for its machines; older ones held a single machineId */
+export interface ApplicationMachines {
+  request?: MachineRequest
+  machines?: AssignedMachine[]
+  machineId?: string
+  machineNumber?: number
+}
+
+export function assignedMachines(app: ApplicationMachines): AssignedMachine[] {
+  if (Array.isArray(app.machines)) return app.machines
+  return app.machineId ? [{ id: app.machineId, number: app.machineNumber ?? 0 }] : []
+}
+
+/** Machines still to find for this application */
+export const machinesStillNeeded = (app: ApplicationMachines) =>
+  Math.max(0, requestTotal(app.request ?? DEFAULT_REQUEST) - assignedMachines(app).length)
+
+/** The details as first sent from the public form, kept even after an admin edits them */
+export interface OriginalApplication extends Omit<ApplicationDetails, "request"> {
+  request?: MachineRequest
+  /** True when this copy was taken at the first edit, for applications sent before copies were kept */
+  savedAtFirstEdit?: boolean
+}
+
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   waiting: "Waiting",
   contacted: "Contacted",
@@ -27,7 +154,7 @@ export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
   incoming: "Incoming",
   servicing: "Being serviced",
   ready: "Ready to go",
-  repurposed: "Handed over",
+  repurposed: "Rehomed",
 }
 
 export const MACHINE_CONDITION_LABELS: Record<number, string> = {

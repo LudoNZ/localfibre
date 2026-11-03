@@ -239,7 +239,7 @@ export default function FundingPanel({ user }: { user: User | null }) {
       ["Still owed to people", sum(reportPurchases.filter(isOwed)).toFixed(2)],
       ["Volunteer hours in period", periodHours],
       ["Machines serviced in period", servicedInPeriod.size],
-      ["Machines handed over in period", handedOverInPeriod.length],
+      ["Machines rehomed in period", handedOverInPeriod.length],
     ];
     const slug = reportPool.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     downloadCsv(`local-fibre-${slug}-${today()}.csv`, header, [...rows, ...summary]);
@@ -479,7 +479,7 @@ export default function FundingPanel({ user }: { user: User | null }) {
                 [money(sum(reportPurchases.filter(isOwed))), "Owed to people"],
                 [`${periodHours} h`, "Volunteer hours in period"],
                 [String(servicedInPeriod.size), "Machines serviced"],
-                [String(handedOverInPeriod.length), "Machines handed over"],
+                [String(handedOverInPeriod.length), "Machines rehomed"],
               ] as const
             ).map(([value, label]) => (
               <div key={label} className={styles.stat}>

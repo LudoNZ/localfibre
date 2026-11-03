@@ -5,7 +5,9 @@ import {
   MACHINE_DETAIL_FIELDS,
   MachineRecipient,
   OPEN_STATUSES,
+  assignedMachines,
   dayToDate,
+  machinesStillNeeded,
   isWorkshopStatus,
   parseCondition,
   parseServiceLog,
@@ -17,6 +19,19 @@ type Params = { params: Promise<{ id: string }> }
 
 // Thrown inside transactions to return a 400 with a readable message
 class ActionError extends Error {}
+
+/** An application's update once this machine is no longer promised to them */
+function releaseMachine(app: FirebaseFirestore.DocumentData, machineId: string) {
+  const machines = assignedMachines(app).filter((m) => m.id !== machineId)
+  return {
+    machines,
+    // Back in the queue as waiting once nothing is promised to them
+    ...(machines.length === 0 && OPEN_STATUSES.includes(app.status) ? { status: "waiting" } : {}),
+    machineId: FieldValue.delete(),
+    machineNumber: FieldValue.delete(),
+    updatedAt: FieldValue.serverTimestamp(),
+  }
+}
 
 /** Edit a machine's details and photos, or move it between incoming, servicing and ready */
 export async function PUT(request: NextRequest, { params }: Params) {
@@ -65,7 +80,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
         machine.data()?.status === "repurposed" &&
         (updates.serviceParts || updates.serviceLog)
       ) {
-        throw new ActionError("Handed-over machines keep their service record as it was")
+        throw new ActionError("Rehomed machines keep their service record as it was")
       }
 
       const current = machine.data()!
@@ -73,19 +88,19 @@ export async function PUT(request: NextRequest, { params }: Params) {
         throw new ActionError("Assign this machine before setting its assigned date")
       }
       if (dates.repurposedAt && current.status !== "repurposed") {
-        throw new ActionError("Only handed-over machines have a handed-over date")
+        throw new ActionError("Only rehomed machines have a rehomed date")
       }
       const received = dates.createdAt ?? current.createdAt?.toDate?.()
       const handedOver = dates.repurposedAt ?? current.repurposedAt?.toDate?.()
       if (received && handedOver && handedOver < received) {
-        throw new ActionError("The handed-over date is before the machine was received")
+        throw new ActionError("The rehomed date is before the machine was received")
       }
       Object.assign(updates, dates)
 
-      // Handed-over machines are part of the permanent log
+      // Rehomed machines are part of the permanent log
       if (isWorkshopStatus(body.status)) {
         if (machine.data()?.status === "repurposed") {
-          throw new ActionError("This machine has already been handed over")
+          throw new ActionError("This machine has already been rehomed")
         }
         updates.status = body.status
       }
@@ -122,7 +137,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       if (action === "assign") {
         // A machine can be promised to someone at any stage, even before it arrives
         if (machine.status === "repurposed") {
-          throw new ActionError("This machine has already been handed over")
+          throw new ActionError("This machine has already been rehomed")
         }
         if (machine.recipient) throw new ActionError("Unassign this machine first")
 
@@ -132,7 +147,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
           const appSnap = await tx.get(appRef)
           const app = appSnap.data()
           if (!app) throw new ActionError("Application not found")
-          if (!OPEN_STATUSES.includes(app.status) || app.machineId) {
+          if (!OPEN_STATUSES.includes(app.status) || machinesStillNeeded(app) === 0) {
             throw new ActionError("This person is no longer waiting for a machine")
           }
 
@@ -145,10 +160,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
             area: app.area,
             groupName: app.groupName ?? null,
           }
+          // Organisations stay in the queue until every machine they asked for is assigned
           tx.update(appRef, {
             status: "contacted",
-            machineId: id,
-            machineNumber: machine.number,
+            machines: [...assignedMachines(app), { id, number: machine.number }],
+            machineId: FieldValue.delete(),
+            machineNumber: FieldValue.delete(),
             updatedAt: now,
           })
         } else {
@@ -170,35 +187,44 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       } else if (action === "unassign") {
         if (!machine.recipient) throw new ActionError("This machine isn't assigned")
         if (machine.status === "repurposed") {
-          throw new ActionError("Handed-over machines keep their recipient on record")
+          throw new ActionError("Rehomed machines keep their recipient on record")
         }
 
+        const appRef = machine.recipient?.applicationId
+          ? db.collection("sewingMachineApplications").doc(machine.recipient.applicationId)
+          : null
+        const app = appRef ? (await tx.get(appRef)).data() : null
+
         tx.update(machineRef, { recipient: null, assignedAt: null, updatedAt: now })
-        if (machine.recipient?.applicationId) {
-          const appRef = db.collection("sewingMachineApplications").doc(machine.recipient.applicationId)
-          tx.update(appRef, {
-            status: "waiting",
-            machineId: FieldValue.delete(),
-            machineNumber: FieldValue.delete(),
-            updatedAt: now,
-          })
-        }
+        if (appRef && app) tx.update(appRef, releaseMachine(app, id))
       } else if (action === "repurposed") {
         if (!machine.recipient) {
-          throw new ActionError("Assign this machine to someone before marking it handed over")
+          throw new ActionError("Assign this machine to someone before marking it rehomed")
         }
-        if (machine.status === "repurposed") throw new ActionError("Already handed over")
+        if (machine.status === "repurposed") throw new ActionError("Already rehomed")
 
         // A past date when logging machines handed out before they were tracked here
         const handedOverAt = date ? dayToDate(date) : null
-        if (date && !handedOverAt) throw new ActionError("Choose a valid handover date")
+        if (date && !handedOverAt) throw new ActionError("Choose a valid rehoming date")
         if (handedOverAt && handedOverAt.getTime() > Date.now() + 24 * 60 * 60 * 1000) {
-          throw new ActionError("The handover date can't be in the future")
+          throw new ActionError("The rehoming date can't be in the future")
         }
 
+        // Reads first: the application, and the other machines promised to them
+        const appRef = machine.recipient?.applicationId
+          ? db.collection("sewingMachineApplications").doc(machine.recipient.applicationId)
+          : null
+        const app = appRef ? (await tx.get(appRef)).data() : null
+        const others = app ? assignedMachines(app).filter((m) => m.id !== id) : []
+        const otherSnaps = await Promise.all(
+          others.map((m) => tx.get(db.collection("sewingMachines").doc(m.id)))
+        )
+
         tx.update(machineRef, { status: "repurposed", repurposedAt: handedOverAt ?? now, updatedAt: now })
-        if (machine.recipient?.applicationId) {
-          const appRef = db.collection("sewingMachineApplications").doc(machine.recipient.applicationId)
+
+        // Collected once every machine they asked for has been rehomed with them
+        const allRehomed = otherSnaps.every((snap) => snap.data()?.status === "repurposed")
+        if (appRef && app && machinesStillNeeded(app) === 0 && allRehomed) {
           tx.update(appRef, { status: "collected", updatedAt: now })
         }
       } else {
@@ -229,24 +255,19 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     if (!machine.exists) {
       return NextResponse.json({ error: "Machine not found" }, { status: 404 })
     }
-    // Handed-over machines are part of the permanent log
+    // Rehomed machines are part of the permanent log
     if (machine.data()?.status === "repurposed") {
-      return NextResponse.json({ error: "Handed-over machines can't be deleted" }, { status: 400 })
+      return NextResponse.json({ error: "Rehomed machines can't be deleted" }, { status: 400 })
     }
 
     // Free up the waiting-list person this machine was promised to
     const applicationId = machine.data()?.recipient?.applicationId
-    const batch = db.batch()
-    batch.delete(machineRef)
-    if (applicationId) {
-      batch.update(db.collection("sewingMachineApplications").doc(applicationId), {
-        status: "waiting",
-        machineId: FieldValue.delete(),
-        machineNumber: FieldValue.delete(),
-        updatedAt: FieldValue.serverTimestamp(),
-      })
-    }
-    await batch.commit()
+    await db.runTransaction(async (tx) => {
+      const appRef = applicationId ? db.collection("sewingMachineApplications").doc(applicationId) : null
+      const app = appRef ? (await tx.get(appRef)).data() : null
+      tx.delete(machineRef)
+      if (appRef && app) tx.update(appRef, releaseMachine(app, id))
+    })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting sewing machine:", error)
