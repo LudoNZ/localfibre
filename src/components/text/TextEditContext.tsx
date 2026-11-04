@@ -19,7 +19,7 @@ const TextEditContext = createContext<TextEditState>({ editing: false, saved: {}
 
 export const useTextEdit = () => useContext(TextEditContext);
 
-/** Edit mode for admins: a toggle on every page, and the window for changing a piece of text */
+/** Edit mode for admins: a toggle on every page that shows text and photo editing, and the window for changing text */
 export function TextEditProvider({ children }: { children: ReactNode }) {
   const { isAdmin } = useAuth();
   const pathname = usePathname();
@@ -43,12 +43,12 @@ export function TextEditProvider({ children }: { children: ReactNode }) {
           aria-pressed={editing}
           onClick={() => setOn((v) => !v)}
         >
-          {editing ? "✓ Done editing" : "✎ Edit page text"}
+          {editing ? "✓ Done editing" : "✎ Edit page"}
         </button>
       )}
       {editing && (
         <p className={styles.banner} role="status">
-          Edit mode: tap any outlined text to change it
+          Edit mode: tap outlined text, or a photo’s edit button
         </p>
       )}
       <EditModal

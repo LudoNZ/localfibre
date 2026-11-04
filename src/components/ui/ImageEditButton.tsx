@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useTextEdit } from "@/components/text/TextEditContext";
 import EditModal from "./EditModal";
 import { deleteStoredFiles, uploadImage, UploadOptions } from "@/lib/imageUpload";
 import type { SitePhoto } from "@/lib/sitePhotoSlots";
@@ -46,7 +47,8 @@ export default function ImageEditButton({
   hint,
   className = "",
 }: ImageEditButtonProps) {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
+  const { editing } = useTextEdit();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -66,7 +68,8 @@ export default function ImageEditButton({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  if (!isAdmin) return null;
+  // Only shown in edit mode; stays open if edit mode is switched off mid-upload
+  if (!editing && !open) return null;
 
   const openModal = () => {
     setFile(null);

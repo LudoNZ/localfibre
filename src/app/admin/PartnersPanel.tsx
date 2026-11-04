@@ -113,8 +113,8 @@ export default function PartnersPanel({ user }: { user: User | null }) {
         </button>
       </div>
       <p className={styles.hint}>
-        Logos are added on the website itself: while logged in as an admin, each badge has an &ldquo;Add logo&rdquo;
-        button.
+        Logos are added on the website itself: turn on &ldquo;Edit page&rdquo; (bottom-left of any page) and each badge
+        gets an &ldquo;Add logo&rdquo; button.
       </p>
 
       {error && !form && <div className={adminStyles.error}>{error}</div>}
