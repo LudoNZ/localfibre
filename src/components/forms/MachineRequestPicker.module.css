@@ -86,3 +86,47 @@
   font-size: 0.9rem;
   color: var(--color-heading);
 }
+
+.kindList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+/* An option an admin has paused: greyed out, with the reason underneath */
+.optionPaused {
+  border-style: dashed;
+  background: transparent;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pausedTag {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--sand);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pausedMessage {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.countRowPaused {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pausedLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  opacity: 0.6;
+}

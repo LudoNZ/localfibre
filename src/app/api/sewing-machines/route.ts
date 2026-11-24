@@ -3,6 +3,7 @@ import { db, FieldValue } from "@/lib/firebaseAdmin"
 import { notifyAdmins } from "@/lib/pushNotifications"
 import { requireAdmin } from "@/lib/adminAuth"
 import { OPEN_STATUSES, parseApplicationDetails, requestSummary } from "@/lib/sewingMachines"
+import { getRequestKinds } from "@/lib/requestOptionsServer"
 
 export async function GET(request: NextRequest) {
   const denied = await requireAdmin(request)
@@ -29,9 +30,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const details = parseApplicationDetails(await request.json())
+    const kinds = await getRequestKinds()
+    const details = parseApplicationDetails(
+      await request.json(),
+      kinds.map((k) => k.id)
+    )
     if (typeof details === "string") {
       return NextResponse.json({ error: details }, { status: 400 })
+    }
+
+    // Machines an admin has greyed out or hidden can't be asked for
+    const closed = kinds.find((kind) => details.request[kind.id] > 0 && kind.mode !== "open")
+    if (closed) {
+      return NextResponse.json({ error: `We're not taking requests for ${closed.many} right now` }, { status: 400 })
     }
 
     await db.collection("sewingMachineApplications").add({
@@ -52,7 +63,7 @@ export async function POST(request: NextRequest) {
     after(() =>
       notifyAdmins({
         title: "New sewing machine request",
-        body: `${details.groupName ? `${details.groupName} (${details.fullName})` : details.fullName}, ${details.area}: ${requestSummary(details.request)}`,
+        body: `${details.groupName ? `${details.groupName} (${details.fullName})` : details.fullName}, ${details.area}: ${requestSummary(details.request, kinds)}`,
         url: "/admin?tab=sewing",
       })
     )

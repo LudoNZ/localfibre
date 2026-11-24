@@ -7,6 +7,7 @@ import {
   MachineRequest,
   requestTotal,
 } from "@/lib/sewingMachines";
+import { openKinds, RequestKindDef } from "@/lib/requestOptions";
 import MachineRequestPicker, { fitRequest } from "./MachineRequestPicker";
 import styles from "./SewingMachineForm.module.css";
 
@@ -18,12 +19,14 @@ const emptyForm = {
   phone: "",
   area: "",
   // Nothing chosen yet: individuals pick one, organisations set how many
-  request: { sewingMachine: 0, overlocker: 0 } as MachineRequest,
+  request: {} as MachineRequest,
 };
 
-export default function SewingMachineForm() {
+export default function SewingMachineForm({ kinds }: { kinds: RequestKindDef[] }) {
   const [formData, setFormData] = useState(emptyForm);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const noneOpen = openKinds(kinds).length === 0;
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
 
   const handleChange = (
@@ -63,6 +66,7 @@ export default function SewingMachineForm() {
       setFormData(emptyForm);
     } catch (error) {
       console.error("Form submission error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "");
       setStatus("error");
       setTimeout(() => setStatus("idle"), 5000);
     }
@@ -126,6 +130,8 @@ export default function SewingMachineForm() {
             value={formData.request}
             onChange={(request) => setFormData((form) => ({ ...form, request }))}
             disabled={disabled}
+            kinds={kinds}
+            publicForm
           />
         </fieldset>
       )}
@@ -233,13 +239,17 @@ export default function SewingMachineForm() {
       <button
         type="submit"
         className={`btn-primary ${styles.button}`}
-        disabled={disabled}
+        disabled={disabled || noneOpen}
       >
         {disabled ? "Submitting..." : "Submit Application"}
       </button>
 
       {status === "error" && (
-        <p className={styles.error}>Something went wrong. Please try again or email us directly.</p>
+        <p className={styles.error}>
+          {errorMessage && errorMessage !== "Internal server error"
+            ? errorMessage
+            : "Something went wrong. Please try again or email us directly."}
+        </p>
       )}
     </form>
   );

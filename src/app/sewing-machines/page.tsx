@@ -5,6 +5,7 @@ import WaveDivider from "@/components/ui/WaveDivider"
 import EditableText from "@/components/text/EditableText"
 import { getSiteText } from "@/lib/siteText"
 import SewingMachineForm from "@/components/forms/SewingMachineForm"
+import { getRequestKinds } from "@/lib/requestOptionsServer"
 
 export const dynamic = "force-dynamic"
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 }
 
 export default async function SewingMachinesPage() {
-  const t = await getSiteText()
+  const [t, requestKinds] = await Promise.all([getSiteText(), getRequestKinds()])
 
   return (
     <div className={styles.page}>
@@ -63,7 +64,7 @@ export default async function SewingMachinesPage() {
         <div className="container">
           <div className={styles.formWrapper}>
             <EditableText id="apply.form.title" text={t["apply.form.title"]} as="h2" />
-            <SewingMachineForm />
+            <SewingMachineForm kinds={requestKinds} />
           </div>
         </div>
       </section>

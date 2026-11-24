@@ -1,3 +1,5 @@
+import { BUILT_IN_KINDS, isKindId, labelFromId, MAX_KINDS, pluralise, RequestKindDef } from "./requestOptions"
+
 export const APPLICATION_STATUSES = ["waiting", "contacted", "collected", "cancelled"] as const
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
@@ -21,13 +23,10 @@ export const APPLICANT_TYPES = ["individual", "communityGroup"] as const
 export type ApplicantType = (typeof APPLICANT_TYPES)[number]
 
 // What someone can ask for. Individuals get one machine; organisations can ask for a mix.
-export const REQUEST_KINDS = {
-  sewingMachine: { one: "Sewing machine", many: "sewing machines" },
-  overlocker: { one: "Overlocker", many: "overlockers" },
-} as const
+// The kinds (sewing machine, overlocker, any an admin adds) live in requestOptions.ts.
+export type RequestKind = string
 
-export type RequestKind = keyof typeof REQUEST_KINDS
-
+/** How many of each kind, keyed by kind id, e.g. { sewingMachine: 2, overlocker: 1 } */
 export type MachineRequest = Record<RequestKind, number>
 
 // Applications from before people could choose asked for one sewing machine
@@ -36,30 +35,44 @@ export const DEFAULT_REQUEST: MachineRequest = { sewingMachine: 1, overlocker: 0
 export const MAX_REQUEST_PER_KIND = 10
 
 export const requestTotal = (request: MachineRequest) =>
-  Object.values(request).reduce((sum, n) => sum + n, 0)
+  Object.values(request).reduce((sum, n) => sum + (n > 0 ? n : 0), 0)
 
 /** e.g. "Overlocker" or "2 sewing machines + 1 overlocker" */
-export function requestSummary(request: MachineRequest = DEFAULT_REQUEST) {
-  const parts = (Object.keys(REQUEST_KINDS) as RequestKind[])
-    .filter((kind) => request[kind] > 0)
-    .map((kind) => ({ kind, n: request[kind] }))
-  if (parts.length === 1 && parts[0].n === 1) return REQUEST_KINDS[parts[0].kind].one
+export function requestSummary(request: MachineRequest = DEFAULT_REQUEST, kinds: RequestKindDef[] = BUILT_IN_KINDS) {
+  // Listed kinds in their order, then any no longer listed
+  const ids = [...kinds.map((k) => k.id), ...Object.keys(request).filter((id) => !kinds.some((k) => k.id === id))]
+  const parts = ids.filter((id) => request[id] > 0).map((id) => ({ id, n: request[id] }))
+  const label = (id: string) => {
+    const kind = kinds.find((k) => k.id === id)
+    const one = kind?.one ?? labelFromId(id)
+    return { one, many: kind?.many ?? pluralise(one) }
+  }
+  if (parts.length === 1 && parts[0].n === 1) return label(parts[0].id).one
   return parts
-    .map(({ kind, n }) => `${n} ${n === 1 ? REQUEST_KINDS[kind].one.toLowerCase() : REQUEST_KINDS[kind].many}`)
+    .map(({ id, n }) => `${n} ${n === 1 ? label(id).one.toLowerCase() : label(id).many}`)
     .join(" + ")
 }
 
-/** Check a request; returns an error message instead when it doesn't add up */
-function parseMachineRequest(value: unknown, applicantType: ApplicantType): MachineRequest | string {
-  const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>
-  const request = Object.fromEntries(
-    (Object.keys(REQUEST_KINDS) as RequestKind[]).map((kind) => {
-      const n = Number(raw[kind] ?? 0)
-      return [kind, Number.isInteger(n) ? n : -1]
-    })
-  ) as MachineRequest
+/**
+ * Check a request; returns an error message instead when it doesn't add up.
+ * `allowed` is the kind ids it may use (defaults to any well-formed id).
+ */
+function parseMachineRequest(
+  value: unknown,
+  applicantType: ApplicantType,
+  allowed?: string[]
+): MachineRequest | string {
+  const raw = (value && typeof value === "object" && !Array.isArray(value) ? value : {}) as Record<string, unknown>
+  const request: MachineRequest = {}
+  for (const [id, count] of Object.entries(raw)) {
+    const n = Number(count ?? 0)
+    if (!Number.isInteger(n) || n < 0 || n > MAX_REQUEST_PER_KIND) return "Invalid number of machines"
+    if (n === 0) continue
+    if (!isKindId(id) || (allowed && !allowed.includes(id))) return "Unknown kind of machine"
+    request[id] = n
+  }
 
-  if (Object.values(request).some((n) => n < 0 || n > MAX_REQUEST_PER_KIND)) return "Invalid number of machines"
+  if (Object.keys(request).length > MAX_KINDS) return "Invalid number of machines"
   const total = requestTotal(request)
   if (total === 0) return "Choose which machine you'd like"
   if (applicantType === "individual" && total > 1) return "Individuals can apply for one machine"
@@ -78,7 +91,11 @@ export interface ApplicationDetails {
 }
 
 /** Check and tidy application details; returns an error message instead when they don't add up */
-export function parseApplicationDetails(body: Record<string, unknown>): ApplicationDetails | string {
+export function parseApplicationDetails(
+  body: Record<string, unknown>,
+  /** Kind ids the request may use */
+  allowedKinds?: string[]
+): ApplicationDetails | string {
   const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "")
   const applicantType = clean(body.applicantType) as ApplicantType
   const groupName = clean(body.groupName)
@@ -97,7 +114,7 @@ export function parseApplicationDetails(body: Record<string, unknown>): Applicat
   if (!APPLICANT_TYPES.includes(applicantType)) return "Invalid applicant type"
   if (applicantType === "communityGroup" && !groupName) return "Organisation name is required"
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)) return "Invalid email format"
-  const request = parseMachineRequest(body.request, applicantType)
+  const request = parseMachineRequest(body.request, applicantType, allowedKinds)
   if (typeof request === "string") return request
   return { ...details, request }
 }

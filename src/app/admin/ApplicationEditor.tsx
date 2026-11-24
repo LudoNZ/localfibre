@@ -15,6 +15,7 @@ import {
   requestTotal,
 } from "@/lib/sewingMachines";
 import MachineRequestPicker, { fitRequest } from "@/components/forms/MachineRequestPicker";
+import { useRequestKinds } from "@/lib/useRequestKinds";
 import { useAdminApi } from "./machineShared";
 import adminStyles from "./Admin.module.css";
 import styles from "./MachinesPanel.module.css";
@@ -36,10 +37,11 @@ const TYPE_LABELS: Record<(typeof APPLICANT_TYPES)[number], string> = {
 
 /** What they first sent, next to the details as they are now */
 function OriginalDetails({ original }: { original: OriginalApplication }) {
+  const { kinds } = useRequestKinds();
   const rows: [string, string][] = [
     ["Applying as", TYPE_LABELS[original.applicantType] ?? original.applicantType],
     ...(original.groupName ? [["Organisation", original.groupName] as [string, string]] : []),
-    ["Machines", original.request ? requestSummary(original.request) : "Not asked (form before this choice)"],
+    ["Machines", original.request ? requestSummary(original.request, kinds) : "Not asked (form before this choice)"],
     ["Full name", original.fullName],
     ["Email", original.email],
     ["Phone", original.phone],
@@ -83,6 +85,7 @@ function EditForm({
   onSaved: Props["onSaved"];
 }) {
   const api = useAdminApi(user);
+  const { kinds } = useRequestKinds();
   const [values, setValues] = useState<ApplicationDetails>({
     applicantType: application.applicantType,
     groupName: application.groupName ?? "",
@@ -170,6 +173,7 @@ function EditForm({
           applicantType={values.applicantType}
           value={values.request}
           onChange={(request) => set("request", request)}
+          kinds={kinds}
           idPrefix="app-request"
         />
       </div>

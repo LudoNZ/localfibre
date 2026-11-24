@@ -3,6 +3,7 @@
 import adminStyles from "./Admin.module.css";
 import styles from "./MachinesPanel.module.css";
 import { assignedMachines, requestSummary } from "@/lib/sewingMachines";
+import { useRequestKinds } from "@/lib/useRequestKinds";
 import { AssignChoice, WaitingApplication, formatDate } from "./machineShared";
 
 interface AssignFieldsProps {
@@ -19,6 +20,7 @@ const emptyManual = { mode: "manual", fullName: "", phone: "", email: "", area: 
 
 /** Pick who a machine goes to: someone on the waiting list, or someone entered by hand */
 export default function AssignFields({ value, onChange, assignable, queueNumbers, allowNone }: AssignFieldsProps) {
+  const { kinds } = useRequestKinds();
   const modes: { id: AssignChoice["mode"]; label: string }[] = [
     ...(allowNone ? [{ id: "none" as const, label: "Not yet" }] : []),
     { id: "waiting", label: `Waiting list (${assignable.length})` },
@@ -71,7 +73,7 @@ export default function AssignFields({ value, onChange, assignable, queueNumbers
                       <strong>{app.fullName}</strong>
                       {app.groupName && <span> · {app.groupName}</span>}
                       <span className={styles.applicantMeta}>
-                        Wants {requestSummary(app.request).toLowerCase()}
+                        Wants {requestSummary(app.request, kinds).toLowerCase()}
                         {assignedMachines(app).length > 0 &&
                           ` (has ${assignedMachines(app)
                             .map((m) => `#${m.number}`)

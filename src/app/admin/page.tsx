@@ -12,12 +12,15 @@ import FundingPanel from "./FundingPanel";
 import DonationsPanel from "./DonationsPanel";
 import PartnersPanel from "./PartnersPanel";
 import ApplicationEditor from "./ApplicationEditor";
+import RequestOptionsPanel from "./RequestOptionsPanel";
+import { useRequestKinds } from "@/lib/useRequestKinds";
 import {
   APPLICATION_STATUSES,
   ApplicationDetails,
   ApplicationMachines,
   ApplicationStatus,
   assignedMachines,
+  DEFAULT_REQUEST,
   machinesStillNeeded,
   OriginalApplication,
   OPEN_STATUSES,
@@ -143,6 +146,7 @@ const formatShortDate = (iso: string | null) =>
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
+  const { kinds: requestKinds } = useRequestKinds();
   const router = useRouter();
   // Notifications link straight to a tab, e.g. /admin?tab=messages
   const [tabOrder, setTabOrder] = useState<Tab[]>(() =>
@@ -1443,6 +1447,11 @@ export default function AdminPage() {
             </span>
           </div>
 
+          <RequestOptionsPanel
+            user={user}
+            requests={applications.map((app) => app.request ?? DEFAULT_REQUEST)}
+          />
+
           <div className={styles.filterGroup} role="group" aria-label="Filter applications">
             {(
               [
@@ -1492,7 +1501,7 @@ export default function AdminPage() {
                       {app.groupName && (
                         <p className={styles.eventMeta}>Organisation: {app.groupName}</p>
                       )}
-                      <p className={styles.applicationRequest}>Wants: {requestSummary(app.request)}</p>
+                      <p className={styles.applicationRequest}>Wants: {requestSummary(app.request, requestKinds)}</p>
                       <p className={styles.applicationContact}>
                         <a href={`mailto:${app.email}`}>{app.email}</a>
                         <a href={`tel:${app.phone.replace(/[^\d+]/g, "")}`}>{app.phone}</a>

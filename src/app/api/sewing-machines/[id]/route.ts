@@ -8,6 +8,7 @@ import {
   parseApplicationDetails,
   requestTotal,
 } from "@/lib/sewingMachines"
+import { getRequestKinds } from "@/lib/requestOptionsServer"
 
 /** Change an application's status, or correct its contact details */
 export async function PATCH(
@@ -27,7 +28,12 @@ export async function PATCH(
     }
 
     if (body.details) {
-      const details = parseApplicationDetails(body.details)
+      // Admins can use any kind still on the list, even greyed-out or hidden ones
+      const kinds = await getRequestKinds()
+      const details = parseApplicationDetails(
+        body.details,
+        kinds.map((k) => k.id)
+      )
       if (typeof details === "string") {
         return NextResponse.json({ error: details }, { status: 400 })
       }
